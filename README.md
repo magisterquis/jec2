@@ -15,7 +15,7 @@ Features
 - Single client binary
 - All comms over SSH, eventually optionally TLS-wrapped
 - End-to-end encryption between operator SSH client and implant
-- Upload/download/pasteboard copy (using [iTerm2](https://iterm2.com) magic
+- Upload/download/pasteboard copy (using [iTerm2](https://iterm2.com) magic)
 - Shell command execution
 - Subprocess execution
 - Server-side logging
