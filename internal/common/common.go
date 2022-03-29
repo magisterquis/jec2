@@ -6,7 +6,7 @@ package common
  * Common code and data
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220328
+ * Last Modified 20220329
  */
 
 const (
