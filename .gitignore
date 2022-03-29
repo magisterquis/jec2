@@ -1,0 +1,6 @@
+.*.swp
+jec2
+bin/*
+jec2cl/*
+jeimplant/id_ed25519_client
+jeimplant/id_ed25519_client.pub
