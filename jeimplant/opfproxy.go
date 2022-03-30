@@ -1,8 +1,8 @@
 package main
 
 /*
- * opproxy.go
- * Handle operator channels
+ * opfproxy.go
+ * Handle request to forward proxy (-L)
  * By J. Stuart McMurray
  * Created 20220329
  * Last Modified 20220329
@@ -102,6 +102,13 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 		}
 	}()
 
+	ProxyTCP(tag, ch, c)
+
+}
+
+// ProxyTCP proxies between src and dst.  It logs a nice message when the
+// proxy is finished.
+func ProxyTCP(tag string, upstream, downstream io.ReadWriter) {
 	/* Acutally do the proxy. */
 	var (
 		fwd, rev int64
@@ -109,8 +116,8 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 	)
 	wg.Add(2)
 	start := time.Now()
-	go proxyTCP(tag, c, ch, &fwd, "forward", start, &wg)
-	go proxyTCP(tag, ch, c, &rev, "reverse", start, &wg)
+	go proxyHalfTCP(tag, downstream, upstream, &fwd, "forward", start, &wg)
+	go proxyHalfTCP(tag, upstream, downstream, &rev, "reverse", start, &wg)
 	wg.Wait()
 	d := msSince(start)
 	Logf(
@@ -122,13 +129,12 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 		rev,
 		fwd+rev,
 	)
-
 }
 
-/* proxyTCP proxies from src to dst.  On error or EOF, CloseRead/CloseWrite
+/* proxyHalfTCP proxies from src to dst.  On error or EOF, CloseRead/CloseWrite
 are called if available.  The number of transferred bytes is put in n.  dir
 and start are used for logging. */
-func proxyTCP(
+func proxyHalfTCP(
 	tag string,
 	dst io.Writer,
 	src io.Reader,

@@ -5,7 +5,7 @@ package main
  * Handle operator shell
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220327
+ * Last Modified 20220330
  */
 
 import (
@@ -29,11 +29,10 @@ type Shell struct {
 	Tag    string
 }
 
-// ReadLine reads a line from s.Reader, until it hits ar \r or an \n.  The
-// final \r or \n is removed.  ReadLine reads a byte at a time and is
-// particularly slow.  Do not call ReadLine concurrently with s.Term.Readline.
-// If an error is encountered while reading, the read bytes will be returned
-// with err == nil.
+// ReadLine reads a line from s.Reader, until it hits an \n.  The final \r*\n
+// is removed.  ReadLine reads a byte at a time and is particularly slow.  Do
+// not call ReadLine concurrently with s.Term.Readline.  If an error is
+// encountered while reading, the read bytes will be returned with err == nil.
 func (s Shell) ReadLine() (string, error) {
 	var (
 		sb  strings.Builder
@@ -46,7 +45,7 @@ func (s Shell) ReadLine() (string, error) {
 	for {
 		n, err = s.Reader.Read(b)
 		if 0 != n {
-			if '\n' == b[0] || '\r' == b[0] {
+			if '\n' == b[0] {
 				break
 			}
 			sb.Write(b)
@@ -58,7 +57,7 @@ func (s Shell) ReadLine() (string, error) {
 
 	/* If we have anything, return it minus the newline. */
 	if 0 != sb.Len() {
-		return sb.String(), nil
+		return strings.TrimRight(sb.String(), "\r"), nil
 	}
 
 	/* Didn't get anything.  Return the error. */
@@ -73,6 +72,12 @@ func (s Shell) Printf(f string, a ...any) (int, error) {
 // Logf logs a message to the shell and the server.  A newline is appended to
 // the message to the shell.
 func (s Shell) Logf(f string, a ...any) {
+	s.Printf("%s\n", fmt.Sprintf(f, a...))
+	Logf("[%s] %s", s.Tag, fmt.Sprintf(f, a...))
+}
+
+// LogServerf is like Logf but logs only to the server
+func (s Shell) LogServerf(f string, a ...any) {
 	s.Printf("%s\n", fmt.Sprintf(f, a...))
 	Logf("[%s] %s", s.Tag, fmt.Sprintf(f, a...))
 }

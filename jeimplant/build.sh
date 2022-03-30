@@ -141,6 +141,6 @@ addldflag SSHVersion "$VER"
 # Build the implant
 mkdir -p "$(dirname $OUTF)"
 echo -n "Building implant..."
-go build -ldflags "$LDFLAGS" -trimpath -o $OUTF
+go build -v -ldflags "$LDFLAGS" -trimpath -o $OUTF
 echo done
 ls -lart $OUTF

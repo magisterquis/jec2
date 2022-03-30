@@ -5,7 +5,7 @@ package main
  * Handle SSH connections from operators
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220327
+ * Last Modified 20220330
  */
 
 import (
@@ -53,7 +53,7 @@ func HandleOperatorConn(tag string, c net.Conn, wg *sync.WaitGroup) {
 
 	/* Handle things from the operator. */
 	go HandleOperatorChans(tag, chans)
-	go HandleOperatorReqs(tag, reqs)
+	go HandleOperatorReqs(tag, sc, reqs)
 
 	/* Wait for the connection to die. */
 	err = sc.Wait()
@@ -97,7 +97,7 @@ func SetAllowedOperatorKeys(s string) error {
 			return fmt.Errorf("duplicate fingerprint %q", fp)
 		}
 		m[fp] = struct{}{}
-		Logf("Allowing operator key figerprint %s", fp)
+		Debugf("Allowing operator key figerprint %s", fp)
 	}
 
 	/* Set the new allowed fingerprints. */

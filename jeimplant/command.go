@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220329
+ * Last Modified 20220330
  */
 
 import (
@@ -39,6 +39,7 @@ var CommandHandlers = map[string]struct {
 	"s":  {CommandHandlerShell, "Execute a command in a shell"},
 	"r":  {CommandHandlerRun, "Run a new process and get its output"},
 	"c":  {CommandHandlerCopy, "Copy a file to the pasteboard (iTerm2)"},
+	"f":  {CommandHandlerFile, "Read/write a file"},
 }
 
 func init() {

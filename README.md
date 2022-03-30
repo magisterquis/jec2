@@ -13,22 +13,21 @@ Features
 --------
 - Single server binary
 - Single client binary
-- All comms over SSH, eventually optionally TLS-wrapped
+- All comms over SSH, optionally TLS-wrapped
 - End-to-end encryption between operator SSH client and implant
-- Upload/download/pasteboard copy (using [iTerm2](https://iterm2.com) magic)
+- Upload/download/pasteboard copy (optionally using [iTerm2](https://iterm2.com) magic)
 - Shell command execution
 - Subprocess execution
 - Server-side logging
+- Forward/Reverse TCP tunnels
 - Incomplete documentation
 -
 
 TODO
 ----
-- Client-side TLS
 - Client-side DNS compatible with
   [dnsproxycommand](https://github.com/magisterquis/dnsproxycommand)
-- `-R` / `tcpip-forward` / `RemoteForward`
 - Unincomplete documentation
 - Easier build and setup
-- Upload/Downloads which don't require [iTerm2](https://iterm2.com)
 - Implant buildable as shared object file
+- Actually test TLS comms

@@ -1,5 +1,13 @@
 package main
 
+/*
+ * commanddownload.go
+ * Command handler to download a file
+ * By J. Stuart McMurray
+ * Created 20220328
+ * Last Modified 20220331
+ */
+
 import (
 	"encoding/base64"
 	"fmt"
@@ -7,16 +15,14 @@ import (
 	"os"
 )
 
-/*
- * commanddownload.go
- * Command handler to download a file
- * By J. Stuart McMurray
- * Created 20220328
- * Last Modified 20220328
- */
-
 // CommandHandlerDownload downloads the files passed to it using iTerm2.
 func CommandHandlerDownload(s Shell, args []string) error {
+	/* Make sure there's at least one file to download. */
+	if 0 == len(args) {
+		s.Printf("Need at least one file to download\n")
+		return nil
+	}
+	/* Download all the files. */
 	for _, fn := range args {
 		if err := downloadFile(s, fn); nil != err {
 			s.Logf("Error downloading %s: %s", fn, err)
