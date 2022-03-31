@@ -20,6 +20,9 @@ Features
 - Subprocess execution
 - Server-side logging
 - Forward/Reverse TCP tunnels
+- Somewhat
+  [broken](https://github.com/golang/go/issues?q=is%3Aissue+is%3Aopen+x%2Fnet%2Fwebdav+)
+  built-in WebDAV server
 - Incomplete documentation
 -
 

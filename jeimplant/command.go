@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220330
+ * Last Modified 20220331
  */
 
 import (
@@ -88,7 +88,7 @@ func CommandHandlerCD(s Shell, args []string) error {
 	/* Try to change directories. */
 	if err := os.Chdir(args[0]); nil != err {
 		s.Printf(
-			"Unable to change directory to %s: %s",
+			"Unable to change directory to %s: %s\n",
 			args[0],
 			err,
 		)

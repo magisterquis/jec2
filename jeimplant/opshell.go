@@ -5,7 +5,7 @@ package main
  * Handle operator shell
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220330
+ * Last Modified 20220331
  */
 
 import (
@@ -78,7 +78,6 @@ func (s Shell) Logf(f string, a ...any) {
 
 // LogServerf is like Logf but logs only to the server
 func (s Shell) LogServerf(f string, a ...any) {
-	s.Printf("%s\n", fmt.Sprintf(f, a...))
 	Logf("[%s] %s", s.Tag, fmt.Sprintf(f, a...))
 }
 

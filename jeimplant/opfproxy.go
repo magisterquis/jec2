@@ -5,7 +5,7 @@ package main
  * Handle request to forward proxy (-L)
  * By J. Stuart McMurray
  * Created 20220329
- * Last Modified 20220329
+ * Last Modified 20220331
  */
 
 import (
@@ -17,6 +17,9 @@ import (
 
 	"golang.org/x/crypto/ssh"
 )
+
+// PseudohostWebDAV is the hostname in -R to use to proxy to internal WebDAV.
+const PseudohostWebDAV = "webdav"
 
 // HandleOperatorForwardProxy handles a request for a forward proxy
 // (direct-tcpip).
@@ -47,6 +50,12 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 			ssh.ConnectionFailed,
 			fmt.Sprintf("Unpossible port %d", connSpec.DPort),
 		)
+		return
+	}
+
+	/* WebDAV's a special case. */
+	if connSpec.DHost == PseudohostWebDAV {
+		HandleWebDAVChannel(tag, nc)
 		return
 	}
 

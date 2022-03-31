@@ -6,7 +6,7 @@ package main
  * Just Enough C2
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220326
+ * Last Modified 20220331
  */
 
 import (
@@ -22,7 +22,7 @@ func main() {
 	var (
 		workDir = flag.String(
 			"dir",
-			"jec2cl",
+			"jec2",
 			"Config and logs `directory`",
 		)
 	)

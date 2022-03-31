@@ -5,13 +5,11 @@ package main
  * Handle general listeners
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220329
+ * Last Modified 20220331
  */
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"strconv"
@@ -137,11 +135,11 @@ func HandleSSH(c net.Conn) {
 
 	/* Nice log for when client disconnects. */
 	err = sc.Wait()
-	if nil == err || errors.Is(err, io.EOF) {
-		log.Printf("[%s] %s disconnected", tag, ct)
-		return
-	}
-	log.Printf("[%s] %s disconnected: %s", tag, ct, err)
+	//if nil == err || errors.Is(err, io.EOF) {
+	//	log.Printf("[%s] %s disconnected", tag, ct)
+	//	return
+	//}
+	//log.Printf("[%s] %s disconnected: %s", tag, ct, err)
 
 }
 

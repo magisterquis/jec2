@@ -4,7 +4,7 @@
 # Build script for jeimplant
 # By J. Stuart McMurray
 # Created 20220326
-# Last Modified 20220327
+# Last Modified 20220331
 
 set -e
 
@@ -13,7 +13,7 @@ MAINFILE=jeimplant.go
 
 # Defaults
 PROTO=""
-KEYF="id_ed25519_client"
+KEYF="id_ed25519_implant"
 OUTF="../bin/jeimplant"
 FP=""
 VER=""

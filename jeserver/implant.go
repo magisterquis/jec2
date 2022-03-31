@@ -5,11 +5,13 @@ package main
  * Handle implant connections
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220329
+ * Last Modified 20220331
  */
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"sort"
 	"strconv"
@@ -218,7 +220,7 @@ func HandleImplant(
 
 	/* Remove implant when done. */
 	go func() {
-		sc.Wait()
+		err := sc.Wait()
 		implantsL.Lock()
 		defer implantsL.Unlock()
 		/* Forget about the implant by name. */
@@ -233,8 +235,13 @@ func HandleImplant(
 				}
 			}
 		}
+		/* Log when the implant disconnects. */
+		if nil != err && !errors.Is(err, io.EOF) {
+			log.Printf("[%s] Implant disconnected: %s", tag, err)
+			return
+		}
+		log.Printf("[%s] Implant disconnected", tag)
 	}()
-
 	return nil
 }
 
@@ -338,13 +345,25 @@ func CommandRenameImplant(lm MessageLogf, ch ssh.Channel, args string) error {
 	/* Replace the old implant with the new one. */
 	implantsL.Lock()
 	defer implantsL.Unlock()
+
+	/* Make sure there's not already an implant with the name. */
+	if _, ok := implants[newi.Name]; ok {
+		return fmt.Errorf("implant %q already exists", newi.Name)
+	}
+
+	/* Make sure we didn't lose the old one. */
+	if _, ok := implants[oldi.Name]; !ok {
+		return fmt.Errorf("implant %q no longer exists", oldi.Name)
+	}
+
+	/* Do the rename. */
 	implants[dst] = newi
-	delete(implants, src)
+	delete(implants, oldi.Name)
 	if latestImplant == oldi {
 		latestImplant = newi
 	}
 
-	fmt.Fprintf(ch, "Renamed %s -> %s\n", src, dst)
+	fmt.Fprintf(ch, "Renamed %s -> %s\n", oldi.Name, newi.Name)
 
 	return nil
 }
