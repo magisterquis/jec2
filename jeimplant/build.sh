@@ -4,7 +4,7 @@
 # Build script for jeimplant
 # By J. Stuart McMurray
 # Created 20220326
-# Last Modified 20220331
+# Last Modified 20220402
 
 set -e
 
@@ -141,6 +141,6 @@ addldflag SSHVersion "$VER"
 # Build the implant
 mkdir -p "$(dirname $OUTF)"
 echo -n "Building implant..."
-go build -v -ldflags "$LDFLAGS" -trimpath -o $OUTF
+go build -ldflags "$LDFLAGS" -trimpath -o $OUTF
 echo done
 ls -lart $OUTF

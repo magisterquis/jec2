@@ -5,7 +5,7 @@ package main
  * Handle operator connections
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220331
+ * Last Modified 20220402
  */
 
 import (
@@ -131,7 +131,9 @@ REQLOOP:
 				lm(rtag, "Empty command")
 			}
 			break REQLOOP
-		case "pty-req", "eow@openssh.com": /* Ignore these silently. */
+		case "pty-req", "eow@openssh.com", "env":
+			/* Ignore these silently. */
+			req.Reply(false, nil)
 		case "subsystem":
 			lm(rtag, "Subsystems are not supported")
 			break REQLOOP

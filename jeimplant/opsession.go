@@ -5,7 +5,7 @@ package main
  * Handle operator channels
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220327
+ * Last Modified 20220402
  */
 
 import (
@@ -77,6 +77,8 @@ REQLOOP:
 			}
 			req.Reply(true, nil)
 			break REQLOOP
+		case "env": /* We don't care about environment variables. */
+			req.Reply(false, nil)
 		default: /* Shouldn't get these. */
 			Logf(
 				"[%s] Rejecting %q request while "+
