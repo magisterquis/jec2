@@ -23,7 +23,7 @@ func main() {
 		workDir = flag.String(
 			"dir",
 			"jec2",
-			"Config and logs `directory`",
+			"Config `directory`",
 		)
 	)
 	flag.Usage = func() {
@@ -43,6 +43,7 @@ Options:
 
 	/* More granular logs. */
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	log.SetOutput(os.Stdout)
 
 	log.Printf("JEC2 starting")
 
