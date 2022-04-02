@@ -1,3 +1,0 @@
-BuildImplant
-============
-Builds an implant.
