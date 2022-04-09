@@ -5,7 +5,7 @@ package main
  * Handle WebDAV filesharing
  * By J. Stuart McMurray
  * Created 20220331
- * Last Modified 20220409
+ * Last Modified 20220410
  */
 
 import (
@@ -33,7 +33,7 @@ type FakeListener struct {
 // and address are only used by the returned FakeListener's Addr method.
 func NewFakeListener(network, addr string) *FakeListener {
 	return &FakeListener{
-		addr: common.FakeAddr{network, addr},
+		addr: common.FakeAddr{Net: network, Addr: addr},
 		ch:   make(chan net.Conn),
 		done: make(chan struct{}),
 	}
