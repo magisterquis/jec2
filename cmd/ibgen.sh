@@ -16,11 +16,6 @@ if [ "-h" == "$1" ]; then
         usage
 fi
 
-# addldflag prints an -X 'main.$1=$2' chunk of ldflags
-function addldflag {
-        echo -n "-X 'main.$1=$2'"
-}
-
 # Make sure we have the needed bits
 SADDR=$1
 FP=$2
@@ -41,17 +36,16 @@ if ! $OK; then
 fi
 
 # Generate build script itself
-echo    '#!/bin/sh'
-echo    'set -e'
-echo    "cd '$(pwd)'"
-echo    'O="$(pwd)/bin/jeimplant-$(go env GOOS)-$(go env GOARCH)"'
-echo    'if [ "windows" == "$(go env GOOS)" ]; then O="$O.exe"; fi'
-echo -n 'go build -trimpath -ldflags "'
-addldflag "ServerAddr" "$SADDR"
-echo -n ' '
-addldflag "ServerFP" "$FP"
-echo -n ' '
-addldflag "PrivKey" "$(openssl base64 -A -in "$IKEY")"
-echo -n '" -o "$O" '
-echo    './cmd/jeimplant'
-echo 'ls "$O"'
+echo '#!/bin/sh'
+echo 'set -e'
+echo
+echo "SRCDIR='$(pwd)'"
+echo OUT='"'"$(pwd)/bin/jeimplant-\$(go env GOOS)-\$(go env GOARCH)"'"'
+echo "ADDR='$SADDR'"
+echo "FP='$FP'"
+echo "KEY='$(openssl base64 -A -in "$IKEY")'"
+echo
+echo 'cd "$SRCDIR"'
+echo 'if [ "windows" == "$(go env GOOS)" ]; then OUT="$OUT.exe"; fi'
+echo go build -trimpath -ldflags '"'-X "'main.ServerAddr=\$ADDR'" -X "'main.ServerFP=\$FP'" -X "'main.PrivKey=\$KEY'"'"' -o '"$OUT"' ./cmd/jeimplant
+echo 'ls "$OUT"'
