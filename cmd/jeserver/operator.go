@@ -31,7 +31,7 @@ func HandleOperator(
 	for nc := range chans {
 		tag := fmt.Sprintf("%s-c%d", tag, n)
 		n++
-		go handleOperatorChannel(tag, nc)
+		go handleOperatorChannel(tag, sc, nc)
 	}
 
 	/* Note when the oporator disconnects. */
@@ -64,14 +64,14 @@ func handleOperatorRequests(tag string, reqs <-chan *ssh.Request) {
 }
 
 /* handleOperatorChannel handles a new channel request from an operator. */
-func handleOperatorChannel(tag string, nc ssh.NewChannel) {
+func handleOperatorChannel(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 	/* Work out the proper handler function. */
 	t := nc.ChannelType()
 	switch t {
 	case "session": /* Exec a command */
 		handleOperatorSession(tag, nc)
 	case "direct-tcpip": /* Connect to an implant. */
-		HandleOperatorForward(tag, nc)
+		HandleOperatorForward(tag, sc, nc)
 	default:
 		log.Printf("[%s] Unhandled new %q channel", tag, t)
 		nc.Reject(ssh.UnknownChannelType, "unknown channel type")

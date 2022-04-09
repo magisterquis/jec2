@@ -5,14 +5,13 @@ package main
  * Proxy an operator to an implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220409
+ * Last Modified 20220410
  */
 
 import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"sync"
 
 	"github.com/magisterquis/jec2/cmd/internal/common"
@@ -24,7 +23,7 @@ to connect to itself.  This can simplify SSH commands. */
 const dAddrServer = "server"
 
 // HandleOperatorForward handles an operator connecting to an implant.
-func HandleOperatorForward(tag string, nc ssh.NewChannel) {
+func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 	/* Work out where the operator whants to go. */
 	var connReq struct {
 		DAddr string /* Only really care about this one. */
@@ -55,13 +54,19 @@ func HandleOperatorForward(tag string, nc ssh.NewChannel) {
 		defer ch.Close()
 		HandleSSH(chanConn{
 			Channel: ch,
-			laddr:   common.FakeAddr{Net: "tcp", Addr: "server"},
+			laddr: common.FakeAddr{
+				Net: sc.LocalAddr().Network(),
+				Addr: fmt.Sprintf(
+					"%s(int)",
+					sc.LocalAddr().String(),
+				),
+			},
 			raddr: common.FakeAddr{
-				Net: "tcp",
-				Addr: net.JoinHostPort(
-					connReq.SAddr,
-					fmt.Sprintf("%d", connReq.SPort),
-				) + "(forwarded)",
+				Net: sc.RemoteAddr().Network(),
+				Addr: fmt.Sprintf(
+					"%s(int)",
+					sc.RemoteAddr().String(),
+				),
 			},
 		})
 		return
