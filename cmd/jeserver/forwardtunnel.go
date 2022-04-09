@@ -14,7 +14,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/magisterquis/jec2/pkg/common"
+	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
 

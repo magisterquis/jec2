@@ -23,6 +23,7 @@ Features
 - Somewhat
   [broken](https://github.com/golang/go/issues?q=is%3Aissue+is%3Aopen+x%2Fnet%2Fwebdav+)
   built-in WebDAV server
+- Easier build and setup
 - Incomplete documentation
 -
 
@@ -31,7 +32,6 @@ TODO
 - Client-side DNS compatible with
   [dnsproxycommand](https://github.com/magisterquis/dnsproxycommand)
 - Unincomplete documentation
-- Easier build and setup
 - Implant buildable as shared object file
 - Actually test TLS comms
 - Use JEC2CONF or something

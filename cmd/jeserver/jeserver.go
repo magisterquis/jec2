@@ -16,14 +16,18 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 )
+
+/* workDirName is the name of the working directory, normally in $HOME. */
+const workDirName = "jec2"
 
 func main() {
 	var (
 		workDir = flag.String(
 			"work-dir",
-			"jec2",
+			defaultDir(),
 			"Working files `directory`",
 		)
 		printConfigDir = flag.Bool(
@@ -33,7 +37,7 @@ func main() {
 		)
 		logName = flag.String(
 			"log",
-			"",
+			"log",
 			"Optional log `filename`",
 		)
 		logStdout = flag.Bool(
@@ -68,7 +72,11 @@ Options:
 
 	/* Be in our working directory. */
 	if err := os.MkdirAll(*workDir, 0700); nil != err {
-		log.Fatalf("Unable to make directory %q: %s", *workDir, err)
+		log.Fatalf(
+			"Unable to make working directory %q: %s",
+			*workDir,
+			err,
+		)
 	}
 	if err := os.Chdir(*workDir); nil != err {
 		log.Fatalf(
@@ -94,6 +102,8 @@ Options:
 		} else {
 			log.SetOutput(f)
 		}
+	} else {
+		log.SetOutput(os.Stdout)
 	}
 
 	/* Start service. */
@@ -116,4 +126,17 @@ Options:
 	for range confCh {
 		go ReloadConfig()
 	}
+}
+
+/* defaultDir returns JEImplant's default directory, which should be
+$HOME/jec2, or just ./jec2 if $HOME isn't findable. */
+func defaultDir() string {
+	/* Try $HOME first, if we have it. */
+	h, err := os.UserHomeDir()
+	if nil != err {
+		log.Printf("Error getting home directory: %s", err)
+		h = "" /* For just in case. */
+	}
+	return filepath.Join(h, workDirName)
+
 }
