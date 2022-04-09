@@ -64,10 +64,10 @@ func (imp Implant) SetAllowedOperatorFingerprints() error {
 func (imp Implant) Close() error {
 	/* Ask the implant to die. */
 	ech := make(chan error, 1)
-	go func() {
+	go func(ch chan<- error) {
 		_, _, err := imp.C.SendRequest(common.Die, true, nil)
 		ech <- err
-	}()
+	}(ech)
 	/* Wait for the implant to respond or time out. */
 	var err error
 	select {
@@ -85,7 +85,7 @@ func (imp Implant) Close() error {
 
 	/* Wait a bit for it to die before we kill it the hard way. */
 	ech = make(chan error, 1)
-	go func() { ech <- imp.C.Wait() }()
+	go func(ch chan<- error) { ech <- imp.C.Wait() }(ech)
 	select {
 	case <-time.After(implantDieWait):
 		if nil != err {
@@ -104,7 +104,7 @@ func (imp Implant) Close() error {
 		/* This is reported elsewhere. */
 	}
 
-	return nil
+	return err
 }
 
 var (
