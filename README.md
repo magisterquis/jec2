@@ -34,3 +34,5 @@ TODO
 - Easier build and setup
 - Implant buildable as shared object file
 - Actually test TLS comms
+- Use JEC2CONF or something
+- Separate TODO file

@@ -5,7 +5,7 @@ package main
  * Channels between C2 and implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220327
+ * Last Modified 20220402
  */
 
 import (
@@ -15,7 +15,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/magisterquis/jec2/internal/common"
+	"github.com/magisterquis/jec2/pkg/common"
 	"golang.org/x/crypto/ssh"
 )
 

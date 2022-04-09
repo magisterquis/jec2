@@ -5,7 +5,7 @@ package main
  * Handle config-reading
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220329
+ * Last Modified 20220402
  */
 
 import (
@@ -17,12 +17,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/magisterquis/jec2/pkg/common"
 	"golang.org/x/crypto/ssh"
-)
-
-const (
-	/* configName is the name of the config file. */
-	configName = "config.json"
 )
 
 var (
@@ -55,13 +51,13 @@ func StartFromConfig() error {
 
 	/* Read in the new config. */
 	var gen bool
-	b, err := os.ReadFile(configName)
+	b, err := os.ReadFile(common.ConfigName)
 	if errors.Is(err, fs.ErrNotExist) {
 		b, err = WriteDefaultConfig()
 		if nil != err {
 			return fmt.Errorf("generating default config: %w", err)
 		}
-		log.Printf("Wrote default config to %s", configName)
+		log.Printf("Wrote default config to %s", common.ConfigName)
 		gen = true
 	} else if nil != err {
 		return fmt.Errorf("reading config file: %w", err)
@@ -70,7 +66,7 @@ func StartFromConfig() error {
 		return fmt.Errorf("parsing config file: %w", err)
 	}
 	if !gen {
-		log.Printf("Loaded config from %s", configName)
+		log.Printf("Loaded config from %s", common.ConfigName)
 	}
 
 	/* Make sure we have enough keys. */

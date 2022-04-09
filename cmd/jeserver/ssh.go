@@ -5,25 +5,25 @@ package main
  * Handle general listeners
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220331
+ * Last Modified 20220402
  */
 
 import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"sync"
 	"sync/atomic"
 
+	"github.com/magisterquis/jec2/pkg/common"
 	"golang.org/x/crypto/ssh"
 )
 
 const (
 	/* defaultSSHBanner is the default SSH version string sent to clients. */
 	defaultSSHBanner = "SSH-2.0-OpenSSH_8.8"
-	/* serverKeyName is the name of the SSH server's key's file. */
-	serverKeyFile = "id_ed25519_server"
 )
 
 var (
@@ -50,17 +50,31 @@ func GenSSHConfig(banner string) error {
 	}
 
 	/* Get the SSH key. */
-	k, made, err := GetOrMakeKey(serverKeyFile)
+	k, _, made, err := common.GetOrMakeKey(common.ServerKeyFile)
 	if nil != err {
 		return fmt.Errorf("get/make key: %w", err)
 	}
 	fp := ssh.FingerprintSHA256(k.PublicKey())
 	if made {
-		log.Printf("Made server key in %s", serverKeyFile)
+		log.Printf("Made server key in %s", common.ServerKeyFile)
 	}
 	log.Printf("Server key fingerprint: %s", fp)
 	SetServerFP(fp)
 	conf.AddHostKey(k)
+
+	/* Make the public side as well. */
+	pkf := common.ServerKeyFile + ".pub"
+	if err := os.WriteFile(
+		pkf,
+		ssh.MarshalAuthorizedKey(k.PublicKey()),
+		0644,
+	); nil != err {
+		log.Printf(
+			"Error writing server public key to %s: %s",
+			pkf,
+			err,
+		)
+	}
 
 	/* Update the current config. */
 	sshConfL.Lock()

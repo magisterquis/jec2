@@ -5,31 +5,25 @@ package main
  * Roll a default config
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220329
+ * Last Modified 20220402
  */
 
 import (
 	"bytes"
-	"crypto/ed25519"
-	"crypto/rand"
 	"encoding/json"
-	"encoding/pem"
-	"errors"
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/mikesmitty/edkey"
+	"github.com/magisterquis/jec2/pkg/common"
 	"golang.org/x/crypto/ssh"
 )
 
 const (
 	/* The below defaults are used when generating a config. */
-	defaultSSHAddr     = "127.0.0.1:10022"
-	defaultImplantKey  = "id_ed25519_implant"
+	defaultSSHAddr     = "0.0.0.0:10022"
 	defaultOperatorKey = "id_ed25519_operator"
 	defaultCertFile    = "jec2.crt"
 	defaultKeyFile     = "jec2.key"
@@ -46,7 +40,7 @@ func WriteDefaultConfig() ([]byte, error) {
 
 	/* Make the default keys. */
 	if err := ensureDefaultKey(
-		defaultImplantKey,
+		common.DefaultImplantKey,
 		"implant",
 		&tc.Keys.Implant,
 	); nil != err {
@@ -70,8 +64,12 @@ func WriteDefaultConfig() ([]byte, error) {
 		return nil, fmt.Errorf("formatting: %w", err)
 	}
 	b.WriteRune('\n')
-	if err := os.WriteFile(configName, b.Bytes(), 0600); nil != err {
-		return nil, fmt.Errorf("writing to %s: %w", configName, err)
+	if err := os.WriteFile(common.ConfigName, b.Bytes(), 0600); nil != err {
+		return nil, fmt.Errorf(
+			"writing to %s: %w",
+			common.ConfigName,
+			err,
+		)
 	}
 
 	return b.Bytes(), nil
@@ -87,7 +85,7 @@ func ensureDefaultKey(fn, adj string, l *[]string) error {
 	}
 
 	/* Make sure we have a key. */
-	sk, made, err := GetOrMakeKey(fn)
+	sk, _, made, err := common.GetOrMakeKey(fn)
 	if nil != err {
 		return fmt.Errorf("get/make key: %w", err)
 	}
@@ -104,59 +102,4 @@ func ensureDefaultKey(fn, adj string, l *[]string) error {
 	*l = append(*l, akl)
 
 	return nil
-}
-
-// GetOrMakeKey tries to read a private key from the file named fn.  If the
-// file doesn't exist, a key is made.
-func GetOrMakeKey(fn string) (key ssh.Signer, made bool, err error) {
-	/* Try to just read the key. */
-	b, err := os.ReadFile(fn)
-	if errors.Is(err, fs.ErrNotExist) {
-		/* No key file, make one. */
-		k, err := makeKey(fn)
-		if nil != err {
-			return nil, false, fmt.Errorf("making key: %w", err)
-		}
-		return k, true, nil
-	}
-	if nil != err {
-		return nil, false, fmt.Errorf("reading %s: %w", fn, err)
-	}
-
-	/* Got something.  Parse as a key. */
-	k, err := ssh.ParsePrivateKey(b)
-	if nil != err {
-		return nil, false, fmt.Errorf(
-			"parsing key from %s: %w",
-			fn,
-			err,
-		)
-	}
-	return k, false, nil
-}
-
-/* makeKey makes an SSH private key and sticks it in the file named fn.  The
-generated keys is returned. */
-func makeKey(fn string) (ssh.Signer, error) {
-	/* Generate the key itself. */
-	_, privKey, err := ed25519.GenerateKey(rand.Reader)
-	if nil != err {
-		return nil, fmt.Errorf("generating private key: %w", err)
-	}
-
-	/* Format nicely. */
-	pb := pem.EncodeToMemory(&pem.Block{
-		Type:  "OPENSSH PRIVATE KEY",
-		Bytes: edkey.MarshalED25519PrivateKey(privKey),
-	})
-	if err := os.WriteFile(fn, pb, 0400); nil != err {
-		return nil, fmt.Errorf("writing key to %s: %w", fn, err)
-	}
-
-	/* SSHify */
-	k, err := ssh.ParsePrivateKey(pb)
-	if nil != err {
-		return nil, fmt.Errorf("parsing generated key: %s", err)
-	}
-	return k, nil
 }

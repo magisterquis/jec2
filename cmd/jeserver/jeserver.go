@@ -6,12 +6,13 @@ package main
  * Just Enough C2
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220331
+ * Last Modified 20220402
  */
 
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -21,9 +22,24 @@ import (
 func main() {
 	var (
 		workDir = flag.String(
-			"dir",
+			"work-dir",
 			"jec2",
-			"Config `directory`",
+			"Working files `directory`",
+		)
+		printConfigDir = flag.Bool(
+			"print-dir",
+			false,
+			"Print the working files directory directory and exit",
+		)
+		logName = flag.String(
+			"log",
+			"",
+			"Optional log `filename`",
+		)
+		logStdout = flag.Bool(
+			"log-stdout",
+			false,
+			"Log to stdout, even with a logfile",
 		)
 	)
 	flag.Usage = func() {
@@ -41,11 +57,14 @@ Options:
 	}
 	flag.Parse()
 
+	/* If we're only printing the work directory, do that and leave. */
+	if *printConfigDir {
+		fmt.Printf("%s\n", *workDir)
+		return
+	}
+
 	/* More granular logs. */
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.SetOutput(os.Stdout)
-
-	log.Printf("JEC2 starting")
 
 	/* Be in our working directory. */
 	if err := os.MkdirAll(*workDir, 0700); nil != err {
@@ -58,16 +77,38 @@ Options:
 			err,
 		)
 	}
-	wd, err := os.Getwd()
-	if nil != err {
-		log.Fatalf("Unable to determine working directory: %s", err)
+
+	/* Work out where to log. */
+	if "" != *logName {
+		f, err := os.OpenFile(
+			*logName,
+			os.O_CREATE|os.O_WRONLY|os.O_APPEND,
+			0600,
+		)
+		if nil != err {
+			log.Fatalf("Unable to open logfile %s: %s", *logName, err)
+		}
+		defer f.Close()
+		if *logStdout {
+			log.SetOutput(io.MultiWriter(os.Stdout, f))
+		} else {
+			log.SetOutput(f)
+		}
 	}
-	log.Printf("Working directory now %s", wd)
 
 	/* Start service. */
+	log.Printf("JEC2 starting")
 	if err := StartFromConfig(); nil != err {
 		log.Fatalf("Error loading config: %s", err)
 	}
+
+	/* Log a message before we die. */
+	diech := make(chan os.Signal, 1)
+	signal.Notify(diech, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		log.Printf("Caught signal %q; terminating", <-diech)
+		os.Exit(0)
+	}()
 
 	/* Register the signal handler for config reloading. */
 	confCh := make(chan os.Signal, 1)

@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/magisterquis/jec2/internal/common"
+	"github.com/magisterquis/jec2/pkg/common"
 )
 
 var (

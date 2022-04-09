@@ -19,7 +19,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/magisterquis/jec2/internal/common"
+	"github.com/magisterquis/jec2/pkg/common"
 	"github.com/magisterquis/simpleshsplit"
 	"golang.org/x/crypto/ssh"
 )
