@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -94,22 +95,7 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 		return
 	}
 	defer ch.Close()
-	go func() {
-		n := 0
-		for req := range reqs {
-			tag := fmt.Sprintf("%s-r%d", tag, n)
-			n++
-			switch req.Type {
-			default:
-				Logf(
-					"[%s] Unexpected %s request",
-					tag,
-					req.Type,
-				)
-				req.Reply(false, nil)
-			}
-		}
-	}()
+	go common.DiscardRequests(tag, reqs)
 
 	ProxyTCP(tag, ch, c)
 

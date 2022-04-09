@@ -51,14 +51,7 @@ func handleOperatorChan(tag string, nc ssh.NewChannel) {
 	Logf("[%s] New connection", tag)
 
 	/* Shouldn't get any of these. */
-	go func() {
-		n := 0
-		for req := range reqs {
-			tag := fmt.Sprintf("%s-r%d", tag, n)
-			n++
-			Logf("[%s] Unexpected %q request", tag, req.Type)
-		}
-	}()
+	go common.DiscardRequests(tag, reqs)
 
 	/* SSH library requires a net.Conn.  We'll proxy the channel to what
 	is more or less a wrapper. */

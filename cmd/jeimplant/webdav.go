@@ -11,7 +11,6 @@ package main
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -120,15 +119,7 @@ func HandleWebDAVChannel(tag string, nc ssh.NewChannel) {
 		return
 	}
 	/* Shouldn't be anything here. */
-	go func() {
-		n := 0
-		for req := range reqs {
-			tag := fmt.Sprintf("%s-r%d", tag, n)
-			n++
-			Logf("[%s] Unexpected %s request", tag, req.Type)
-			req.Reply(false, nil)
-		}
-	}()
+	go common.DiscardRequests(tag, reqs)
 	/* Send it to the WebDAV server.  This will close the channel when
 	it's done. */
 	if err := WDListener.SendReadWriter(ch); nil != err {

@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/netip"
 
+	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -123,22 +124,7 @@ func handleRemoteForward(
 		return
 	}
 	/* We shouldn't get anything here. */
-	go func() {
-		n := 0
-		for req := range reqs {
-			tag := fmt.Sprintf("%s-r%d", tag, n)
-			n++
-			switch req.Type {
-			default:
-				Logf(
-					"[%s] Unexpected %s request",
-					tag,
-					req.Type,
-				)
-				req.Reply(false, nil)
-			}
-		}
-	}()
+	go common.DiscardRequests(tag, reqs)
 	defer ch.Close()
 
 	/* Actually do the proxy. */
