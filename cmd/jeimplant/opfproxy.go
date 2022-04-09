@@ -150,7 +150,7 @@ func proxyHalfTCP(
 			tag,
 			dir,
 			d,
-			n,
+			*n,
 			err,
 		)
 	} else {
@@ -159,7 +159,7 @@ func proxyHalfTCP(
 			tag,
 			dir,
 			d,
-			n,
+			*n,
 		)
 	}
 
