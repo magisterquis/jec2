@@ -5,7 +5,7 @@ package main
  * Handle WebDAV filesharing
  * By J. Stuart McMurray
  * Created 20220331
- * Last Modified 20220331
+ * Last Modified 20220409
  */
 
 import (
@@ -17,24 +17,14 @@ import (
 	"net"
 	"sync"
 
+	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
 
-// FakeAddr is a net.Addr which uses static values.
-type FakeAddr struct {
-	Net  string
-	Addr string
-}
-
-// Network returns f.Net
-func (f FakeAddr) Network() string { return f.Net }
-
-// String return f.Addr
-func (f FakeAddr) String() string { return f.Addr }
-
-// FakeListener implements a net.Listener which allows for
+// FakeListener implements a net.Listener which allows for sending net.Conns
+// to something which needs a listener.
 type FakeListener struct {
-	addr FakeAddr
+	addr common.FakeAddr
 	once sync.Once
 	ch   chan net.Conn
 	done chan struct{}
@@ -44,7 +34,7 @@ type FakeListener struct {
 // and address are only used by the returned FakeListener's Addr method.
 func NewFakeListener(network, addr string) *FakeListener {
 	return &FakeListener{
-		addr: FakeAddr{network, addr},
+		addr: common.FakeAddr{network, addr},
 		ch:   make(chan net.Conn),
 		done: make(chan struct{}),
 	}
