@@ -5,18 +5,23 @@ package main
  * Proxy an operator to an implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220327
+ * Last Modified 20220409
  */
 
 import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"sync"
 
 	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
+
+/* dAddrServer may be requested as a destination address to ask the server
+to connect to itself.  This can simplify SSH commands. */
+const dAddrServer = "server"
 
 // HandleOperatorForward handles an operator connecting to an implant.
 func HandleOperatorForward(tag string, nc ssh.NewChannel) {
@@ -33,6 +38,33 @@ func HandleOperatorForward(tag string, nc ssh.NewChannel) {
 			tag,
 			err,
 		)
+	}
+
+	/* If we're just connecting to ourselves, life's easy. */
+	if dAddrServer == connReq.DAddr {
+		ch, reqs, err := nc.Accept()
+		if nil != err {
+			log.Printf(
+				"[%s] Error accepting self-connection: %s",
+				tag,
+				err,
+			)
+			return
+		}
+		go common.DiscardRequests(tag, reqs)
+		defer ch.Close()
+		HandleSSH(chanConn{
+			Channel: ch,
+			laddr:   common.FakeAddr{Net: "tcp", Addr: "server"},
+			raddr: common.FakeAddr{
+				Net: "tcp",
+				Addr: net.JoinHostPort(
+					connReq.SAddr,
+					fmt.Sprintf("%d", connReq.SPort),
+				) + "(forwarded)",
+			},
+		})
+		return
 	}
 
 	/* See if we can find an implant which matches. */
@@ -68,19 +100,11 @@ func HandleOperatorForward(tag string, nc ssh.NewChannel) {
 
 	/* Proxy between the two. */
 	ch, reqs, err := nc.Accept()
-	go func() {
-		n := 0
-		for req := range reqs {
-			rtag := fmt.Sprintf("%s-r%d", tag, n)
-			n++
-			log.Printf(
-				"[%s] Unexpected %q channel request",
-				rtag,
-				req.Type,
-			)
-			req.Reply(false, nil)
-		}
-	}()
+	if nil != err {
+		log.Printf("[%s] Error accepting proxy request: %s", tag, err)
+		return
+	}
+	go common.DiscardRequests(tag, reqs)
 	defer ch.Close()
 
 	/* Proxy between them. */
