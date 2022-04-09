@@ -41,7 +41,8 @@ if ! $OK; then
 fi
 
 # Generate build script itself
-echo '#!/bin/sh'
+echo    '#!/bin/sh'
+echo    'set -e'
 echo    "cd '$(pwd)'"
 echo    'O="$(pwd)/bin/jeimplant-$(go env GOOS)-$(go env GOARCH)"'
 echo    'if [ "windows" == "$(go env GOOS)" ]; then O="$O.exe"; fi'
