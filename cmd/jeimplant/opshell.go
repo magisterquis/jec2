@@ -5,7 +5,7 @@ package main
  * Handle operator shell
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220331
+ * Last Modified 20220411
  */
 
 import (
@@ -17,6 +17,7 @@ import (
 
 	"github.com/magisterquis/faketerm"
 	"github.com/magisterquis/simpleshsplit"
+	"golang.org/x/term"
 )
 
 // ErrQuitShell indicates that the shell should be terminated, nicely
@@ -29,10 +30,11 @@ type Shell struct {
 	Tag    string
 }
 
-// ReadLine reads a line from s.Reader, until it hits an \n.  The final \r*\n
-// is removed.  ReadLine reads a byte at a time and is particularly slow.  Do
-// not call ReadLine concurrently with s.Term.Readline.  If an error is
-// encountered while reading, the read bytes will be returned with err == nil.
+// ReadLine reads a line from s.Reader, until it hits an \r or an \n.  ReadLine
+// reads a byte at a time and is particularly slow.  Do not call ReadLine
+// concurrently with s.Term.Readline.  If an error is encountered while
+// reading, the read bytes will be returned with err == nil.  The next call
+// will return the error.
 func (s Shell) ReadLine() (string, error) {
 	var (
 		sb  strings.Builder
@@ -41,11 +43,22 @@ func (s Shell) ReadLine() (string, error) {
 		n   int
 	)
 
+	/* Engineered myself into a corner, I did. */
+	switch s.Term.(type) {
+	case *term.Terminal: /* The one which requires work. */
+	case *faketerm.FakeTerm:
+		/* This readline should be sufficient. */
+		return s.Term.ReadLine()
+	default:
+		Logf("Unpossible terminal type %T", s.Term) /* Spam, yes. */
+		return s.Term.ReadLine()
+	}
+
 	/* Read bytes until an error or newline. */
 	for {
 		n, err = s.Reader.Read(b)
 		if 0 != n {
-			if '\n' == b[0] {
+			if '\r' == b[0] || '\n' == b[0] {
 				break
 			}
 			sb.Write(b)
@@ -57,7 +70,7 @@ func (s Shell) ReadLine() (string, error) {
 
 	/* If we have anything, return it minus the newline. */
 	if 0 != sb.Len() {
-		return strings.TrimRight(sb.String(), "\r"), nil
+		return sb.String(), nil
 	}
 
 	/* Didn't get anything.  Return the error. */
