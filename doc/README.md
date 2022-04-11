@@ -3,6 +3,8 @@ Documentation
 This directory contains information about running JEC2.  Despite its somewhat
 simple featureset, it can be a bit persnickety.
 
+These docs are very much a work in progress.
+
 Pastables
 ---------
 The below table contains some of the more useful commands for using JEC2.  They
