@@ -50,5 +50,5 @@ echo "KEY='$(openssl base64 -A -in "$IKEY")'"
 echo
 echo 'cd "$SRCDIR"'
 echo 'if [ "windows" == "$(go env GOOS)" ]; then OUT="$OUT.exe"; fi'
-echo go build -trimpath -ldflags '"'-X "'main.ServerAddr=\$ADDR'" -X "'main.ServerFP=\$FP'" -X "'main.PrivKey=\$KEY'"'"' -o '"$OUT"' ./cmd/jeimplant
+echo go build -trimpath -ldflags '"'-s -w -X "'main.ServerAddr=\$ADDR'" -X "'main.ServerFP=\$FP'" -X "'main.PrivKey=\$KEY'"'"' -o '"$OUT"' ./cmd/jeimplant
 echo 'ls "$OUT"'
