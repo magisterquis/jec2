@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220331
+ * Last Modified 20220411
  */
 
 import (
@@ -31,6 +31,7 @@ var CommandHandlers = map[string]struct {
 	Help    string /* Help text. */
 }{
 	"h":  {CommandHandlerNoOp, "This help"},
+	"?":  {CommandHandlerNoOp, "This help"},
 	"#":  {CommandHandlerNoOp, "Log a comment"},
 	"q":  {CommandHandlerQuit, "Disconnect from the implant"},
 	"cd": {CommandHandlerCD, "Change directory"},
@@ -44,9 +45,11 @@ var CommandHandlers = map[string]struct {
 
 func init() {
 	/* Avoid initialization loop. */
-	h := CommandHandlers["h"]
-	h.Handler = CommandHandlerHelp
-	CommandHandlers["h"] = h
+	for _, c := range []string{"h", "?"} {
+		h := CommandHandlers[c]
+		h.Handler = CommandHandlerHelp
+		CommandHandlers[c] = h
+	}
 }
 
 // CommandHandlerNoOp is a no-op, for # in CommandHandlers
