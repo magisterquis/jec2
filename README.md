@@ -33,6 +33,5 @@ TODO
   [dnsproxycommand](https://github.com/magisterquis/dnsproxycommand)
 - Unincomplete documentation
 - Implant buildable as shared object file
-- Actually test TLS comms
 - Use JEC2CONF or something
 - Separate TODO file
