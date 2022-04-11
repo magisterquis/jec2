@@ -1,11 +1,11 @@
-package common
+package main
 
 /*
  * tls.go
  * Dial TLS from a URL
  * By J. Stuart McMurray
  * Created 20220402
- * Last Modified 20220402
+ * Last Modified 20220411
  */
 
 import (

