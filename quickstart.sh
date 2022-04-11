@@ -41,7 +41,7 @@ ls -d "$DIR"
 echo -n "Putting server in binary directory... "
 BIN="$DIR/bin"
 mkdir -p "$BIN"
-mv "$SVR" "$BIN"
+mv -f "$SVR" "$BIN"
 ls "$BIN/$SVR"
 echo -n "Starting server... "
 PATH="$BIN:$PATH" nohup jeserver >>$DIR/log 2>&1 &
