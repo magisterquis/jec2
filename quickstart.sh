@@ -29,20 +29,20 @@ function wait_for_file {
         ls "$1"
 }
 
-# Make sure we have somewhere to put files
-echo -n "Ensuring we have an output directory... "
-BIN="$(pwd)/bin"
-mkdir -p "$BIN"
-ls -d "$BIN"
-
 # Build and start server
+SVR="jeserver"
 echo -n "Building server... "
-go build -trimpath -o "$BIN/jeserver" ./cmd/jeserver
-ls "$BIN/jeserver"
+go build -trimpath -o "$SVR" ./cmd/jeserver
+ls "$SVR"
 echo -n "Making working directory... "
-DIR="$($BIN/jeserver -print-dir)"
+DIR="$(./$SVR -print-dir)"
 mkdir -p "$DIR"
 ls -d "$DIR"
+echo -n "Putting server in binary directory... "
+BIN="$DIR/bin"
+mkdir -p "$BIN"
+mv "$SVR" "$BIN"
+ls "$BIN/$SVR"
 echo -n "Starting server... "
 PATH="$BIN:$PATH" nohup jeserver >>$DIR/log 2>&1 &
 SPID="$!"
@@ -65,12 +65,16 @@ OKEY="$DIR/id_ed25519_operator"
 wait_for_file "$OKEY" "operator key generation"
 
 # Make implant-builder
+echo -n "Making implant directory... "
+IDIR="$DIR/implants"
+mkdir -p "$IDIR"
+ls -d "$IDIR"
 echo -n "Getting server fingerprint... "
 FP="$(ssh-keygen -lf $SKEY | cut -f 2 -d ' ')"
 echo "$FP"
 BS="$BIN/jegenimplant.sh"
 echo -n "Generating implant build script... "
-./cmd/ibgen.sh "$SADDR" "$FP" "$IKEY" > "$BS"
+./cmd/ibgen.sh "$SADDR" "$FP" "$IKEY" "$IDIR" > "$BS"
 chmod 0700 "$BS"
 ls "$BS"
 

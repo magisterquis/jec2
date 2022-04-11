@@ -9,7 +9,7 @@
 set -e
 
 function usage {
-        echo "Usage: $0 serveraddr fingerprint implantkeyfile" >&2
+        echo "Usage: $0 serveraddr fingerprint implantkeyfile implantdir" >&2
         exit 1
 }
 if [ "-h" == "$1" ]; then
@@ -20,13 +20,16 @@ fi
 SADDR=$1
 FP=$2
 IKEY=$3
+IDIR=$4
 OK=false
-if [ "" == "$SADDR" ]; then
+if [ -z "$SADDR" ]; then
         echo "Missing server address" >&2
-elif [ "" == "$FP" ]; then
+elif [ -z "$FP" ]; then
         echo "Missing server fingerprint" >&2
-elif [ "" == "$IKEY" ]; then
+elif [ -z "$IKEY" ]; then
         echo "Missing implant key file" >&2
+elif [ -z "$IDIR" ]; then
+        echo "Missing implant directory" >&2
 else
         OK=true
 fi
@@ -40,8 +43,8 @@ echo '#!/bin/sh'
 echo 'set -e'
 echo
 echo "SRCDIR='$(pwd)'"
-echo OUT='"'"$(pwd)/bin/jeimplant-\$(go env GOOS)-\$(go env GOARCH)"'"'
-echo "ADDR='$SADDR'"
+echo OUT='"'"$IDIR/jeimplant-\$(go env GOOS)-\$(go env GOARCH)"'"'
+echo 'ADDR="${1:-"'"$SADDR"'"}"'
 echo "FP='$FP'"
 echo "KEY='$(openssl base64 -A -in "$IKEY")'"
 echo
