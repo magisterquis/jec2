@@ -5,7 +5,7 @@ package main
  * Handle operator connections
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220402
+ * Last Modified 20220411
  */
 
 import (
@@ -135,10 +135,10 @@ REQLOOP:
 			/* Ignore these silently. */
 			req.Reply(false, nil)
 		case "subsystem":
-			lm(rtag, "Subsystems are not supported")
+			lm(rtag, "Subsystems are not supported.")
 			break REQLOOP
 		case "shell":
-			lm(rtag, "Interactive shells are not supported")
+			lm(rtag, "Interactive shells are not supported.")
 			break REQLOOP
 		default:
 			log.Printf(
@@ -148,6 +148,27 @@ REQLOOP:
 			)
 			req.Reply(false, nil)
 		}
+	}
+
+	/* Reply that we'll run the command.  This may just be to say we're
+	not actually doing anything. */
+	if err := req.Reply(true, nil); nil != err {
+		log.Printf(
+			"[%s] Can't reply to %q request: %s",
+			tag,
+			req.Type,
+			err,
+		)
+		return
+	}
+
+	/* If we didn't get a command, nothing else to do. */
+	if "" == cmd.C {
+		/* Encourage the client to close the channel. */
+		if err := ch.CloseWrite(); nil != err {
+			lm(tag, "Error signalling end-of-write: %s", err)
+		}
+		return
 	}
 
 	/* Shouldn't probably get any other requests. */
@@ -167,16 +188,6 @@ REQLOOP:
 			req.Reply(false, nil)
 		}
 	}()
-
-	/* If we didn't get a command, nothing else to do. */
-	if "" == cmd.C {
-		req.Reply(false, nil)
-		return
-	}
-	if err := req.Reply(true, nil); nil != err {
-		log.Printf("[%s] Can't reply to exec: %s", tag, err)
-		return
-	}
 
 	/* Got a command, execute it. */
 	log.Printf("[%s] Command: %s", tag, cmd.C)
