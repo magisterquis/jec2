@@ -30,7 +30,8 @@ Features
 Quickstart
 ----------
 1. Have git and the [Go compiler](https://go.dev/doc/install)
-2. Work out the server's extrnal address
+2. Work out the server's extrnal address or something which points at port
+   10222 on the server
 2. Get the source:
    `git clone https://github.com/magisterquis/jec2.git`
 3. Set everything up the easy way:

@@ -12,5 +12,8 @@ assume JEServer was set up with [`quickstart.sh`](./quickstart.sh.md).
 
 Description                   | Command
 ------------------------------|--------
-Connect to a local server     | `ssh -i $HOME/id_25519_operator -J 127.0.0.1:10022 server`
-Connect to the latest implant | `ssh -i $HOME/id_25519_operator -J 127.0.0.1:10022 latest`
+Connect to a local server     | `ssh -i $HOME/jec2/id_ed25519_operator -J 127.0.0.1:10022 server`
+Connect to the latest implant | `ssh -i $HOME/jec2/id_ed25519_operator -J 127.0.0.1:10022 latest`
+
+SSH Config
+----------
