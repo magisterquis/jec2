@@ -17,3 +17,24 @@ Connect to the latest implant | `ssh -i $HOME/jec2/id_ed25519_operator -J 127.0.
 
 SSH Config
 ----------
+The following SSH config works nicely for the default JEServer setup, as made
+by [`quickstart.sh`](./quickstart.sh.md).
+
+```ssh_config
+ControlMaster auto
+ControlPath ~/.ssh/sock/%C.sock
+ControlPersist yes
+ServerAliveInterval 30
+
+Host jeserver
+        HostName 127.0.0.1
+        Port 10022
+        IdentityFile ~/jec2/id_ed25519_operator
+
+Host jeimplant
+        HostName latest
+        ProxyJump jeserver
+        IdentityFile ~/jec2/id_ed25519_operator
+```
+
+Don't forget to `mkdir -p ~/.ssh/sock`
