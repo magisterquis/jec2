@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220411
+ * Last Modified 20220412
  */
 
 import (
@@ -37,7 +37,7 @@ var CommandHandlers = map[string]struct {
 	"cd": {CommandHandlerCD, "Change directory"},
 	"u":  {CommandHandlerUpload, "Upload a file (iTerm2)"},
 	"d":  {CommandHandlerDownload, "Download a file (iTerm2)"},
-	"s":  {CommandHandlerShell, "Execute a command in a shell"},
+	"s":  {CommandHandlerShell, "Execute (a command in) a shell"},
 	"r":  {CommandHandlerRun, "Run a new process and get its output"},
 	"c":  {CommandHandlerCopy, "Copy a file to the pasteboard (iTerm2)"},
 	"f":  {CommandHandlerFile, "Read/write a file"},
