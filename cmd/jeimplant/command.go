@@ -35,7 +35,7 @@ var CommandHandlers = map[string]struct {
 	"#":  {CommandHandlerNoOp, "Log a comment"},
 	"q":  {CommandHandlerQuit, "Disconnect from the implant"},
 	"cd": {CommandHandlerCD, "Change directory"},
-	"u":  {CommandHandlerUpload, "Upload a file (iTerm2)"},
+	"u":  {CommandHandlerUpload, "Upload file(s) (iTerm2)"},
 	"d":  {CommandHandlerDownload, "Download a file (iTerm2)"},
 	"s":  {CommandHandlerShell, "Execute (a command in) a shell"},
 	"r":  {CommandHandlerRun, "Run a new process and get its output"},
