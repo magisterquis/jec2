@@ -160,3 +160,39 @@ The `s` command with no arguments spawns `/bin/sh` with no arguments and
 hooks up the C2 session's to its stdio.  This is useful for shell-in-shell
 gymnastics (`docker exec`->`chroot`?) but leaves an extra process running.  Kill the
 shell and hit enter a couple of times to get back to normal.
+
+Port Forwarding
+---------------
+JEImplant handles requests for OpenSSH's TCP port forwarding options.  Unix
+sockets aren't supported yet.
+
+Supported are
+- `-D` / `DynamicForward`
+- `-J` / `ProxyJump`
+- `-L` / `LocalForward`
+- `-R` / `RemoteForward`
+
+Not supported are
+- `-w` / `Tunnel`
+- Unix domain sockets
+
+### WebDAV
+As a special case, forwarding to the host `webdav` with any port will proxy to
+an internal WebDAV server.  Unfortunately, the
+[WebDAV library](https://pkg.go.dev/golang.org/x/net/webdav) used by JEImplant
+is a little
+[broken](https://github.com/golang/go/issues?q=is%3Aissue+is%3Aopen+%5Bx%2Fnet%2Fwebdav%5D).
+
+Nevertheless, this means something like the following (kinda) works:
+```sh
+ssh -f -N -L 8080:webdav:1 jeimplant
+cadaver http://127.0.0.1:8080 # Or FUSE-mount or whatnot
+```
+Don't expect too much.
+
+For Windows targets, to access different driven, append a drive letter to the
+path:
+```sh
+cadaver http://127.0.0.1:8080/c # Or FUSE-mount or net use or whatever
+```
+This is totally untested.
