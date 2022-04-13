@@ -9,6 +9,10 @@ Under the hood, it's all just SSH with extra steps.
 
 For legal use only.
 
+Documentation
+-------------
+Docs live in the [`doc/`](./doc) directory.  They're a work in progress.
+
 Features
 --------
 - Single server binary
