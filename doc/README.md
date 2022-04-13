@@ -20,7 +20,7 @@ SSH Config
 The following SSH config works nicely for the default JEServer setup, as made
 by [`quickstart.sh`](./quickstart.sh.md).
 
-```ssh_config
+```ssh-config
 ControlMaster auto
 ControlPath ~/.ssh/sock/%C.sock
 ControlPersist yes
