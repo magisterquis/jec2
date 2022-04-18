@@ -5,7 +5,7 @@ package main
  * Handle operator global requests
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220330
+ * Last Modified 20220418
  */
 
 import (
@@ -29,6 +29,8 @@ func HandleOperatorReqs(
 			req.Reply(true, nil)
 		case "tcpip-forward": /* -R/RemoteForwardish. */
 			go StartRemoteForward(tag, sc, req)
+		case "cancel-tcpip-forward":
+			go CancelRemoteForward(tag, req)
 		default:
 			Logf("[%s] Unknown request type %s", tag, t)
 			req.Reply(false, nil)
