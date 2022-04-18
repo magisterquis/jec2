@@ -15,10 +15,8 @@ Docs live in the [`doc/`](./doc) directory.  They're a work in progress.
 
 Features
 --------
-- Single server binary
-- Single client binary
-- All comms over SSH, optionally TLS-wrapped
-- End-to-end encryption between operator SSH client and implant
+- Single binaries for client and server
+- All comms end-to-end encrypted over SSH, optionally TLS-wrapped
 - Upload/download/pasteboard copy (optionally using [iTerm2](https://iterm2.com) magic)
 - Shell command execution
 - Subprocess execution
@@ -28,8 +26,6 @@ Features
   [broken](https://github.com/golang/go/issues?q=is%3Aissue+is%3Aopen+x%2Fnet%2Fwebdav+)
   built-in WebDAV server
 - Easyish build and setup
-- Incomplete documentation
--
 
 Quickstart
 ----------
@@ -50,12 +46,3 @@ Quickstart
    `ssh -i $HOME/jec2/id_ed25519_operator -J 127.0.0.1:10022 latest`
 
 Please see the [quickstart docs](./doc/quickstart.sh.md) for more details.
-
-TODO
-----
-- Client-side DNS compatible with
-  [dnsproxycommand](https://github.com/magisterquis/dnsproxycommand)
-- Unincomplete documentation
-- Implant buildable as shared object file
-- Use JEC2CONF or something
-- Separate TODO file
