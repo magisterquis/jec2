@@ -5,13 +5,11 @@ package main
  * Handle implant connections
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220331
+ * Last Modified 20220418
  */
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"sort"
 	"strconv"
@@ -220,7 +218,7 @@ func HandleImplant(
 
 	/* Remove implant when done. */
 	go func() {
-		err := sc.Wait()
+		sc.Wait()
 		implantsL.Lock()
 		defer implantsL.Unlock()
 		/* Forget about the implant by name. */
@@ -235,12 +233,6 @@ func HandleImplant(
 				}
 			}
 		}
-		/* Log when the implant disconnects. */
-		if nil != err && !errors.Is(err, io.EOF) {
-			log.Printf("[%s] Implant disconnected: %s", tag, err)
-			return
-		}
-		log.Printf("[%s] Implant disconnected", tag)
 	}()
 	return nil
 }

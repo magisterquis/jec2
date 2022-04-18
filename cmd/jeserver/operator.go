@@ -5,13 +5,11 @@ package main
  * Handle operator connections
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220411
+ * Last Modified 20220418
  */
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"strings"
 
@@ -33,15 +31,6 @@ func HandleOperator(
 		n++
 		go handleOperatorChannel(tag, sc, nc)
 	}
-
-	/* Note when the oporator disconnects. */
-	go func() {
-		if err := sc.Wait(); nil != err && !errors.Is(err, io.EOF) {
-			log.Printf("[%s] Operator disconnected: %s", tag, err)
-			return
-		}
-		log.Printf("[%s] Operator disconnected", tag)
-	}()
 
 	return nil
 }
