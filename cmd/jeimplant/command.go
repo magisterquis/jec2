@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220412
+ * Last Modified 20220508
  */
 
 import (
@@ -13,12 +13,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"runtime"
 	"sort"
 	"strings"
-	"sync"
 	"text/tabwriter"
 )
 
@@ -131,6 +131,8 @@ func CommandHandlerShell(s Shell, args []string) error {
 	default:
 		cmd = exec.Command("/bin/sh")
 	}
+	cmd.Stdout = s
+	cmd.Stderr = s
 
 	/* Remove the HISTFILE environment variable. */
 	env := os.Environ()
@@ -145,46 +147,10 @@ func CommandHandlerShell(s Shell, args []string) error {
 	env = env[:last]
 	cmd.Env = env
 
-	/* Hook up the command as stdin if we have one.  If not, use the
-	shell. */
-	input := strings.Join(args, " ")
-	var pw *io.PipeWriter
-	if 0 != len(args) {
-		cmd.Stdin = strings.NewReader(input)
-	} else {
-		var pr *io.PipeReader
-		pr, pw = io.Pipe()
-		cmd.Stdin = pr
-	}
-
-	/* Proxy the output ourselves so we can warn the user when the shell
-	is dead. */
-	op, err := cmd.StdoutPipe()
-	if nil != err {
-		s.Logf("Error getting stdout pipe: %s", err)
-		return nil
-	}
-	ep, err := cmd.StderrPipe()
-	if nil != err {
-		s.Logf("Error getting stderr pipe: %s", err)
-		return nil
-	}
-	ech := make(chan error, 2)
-	for _, p := range []struct { /* Copy, and stick errors in ech. */
-		n  string
-		rc io.ReadCloser
-	}{{"stderr", ep}, {"stdout", op}} {
-		go func(n string, r io.ReadCloser) {
-			if _, err := io.Copy(s, r); nil != err {
-				ech <- fmt.Errorf("%s died: %w", n, err)
-				return
-			}
-			ech <- nil
-		}(p.n, p.rc)
-	}
-
 	/* If we're running a single command, life's easy. */
-	if "" != input {
+	if 0 != len(args) {
+		input := strings.Join(args, " ")
+		cmd.Stdin = strings.NewReader(input)
 		Logf("[%s] Sending %q to %s", s.Tag, input, cmd.Path)
 		if err := cmd.Run(); nil != err {
 			s.Logf("Unclean exit: %s", err)
@@ -192,20 +158,24 @@ func CommandHandlerShell(s Shell, args []string) error {
 		return nil
 	}
 
-	/* Start the shell. */
+	/* We'll be taking input from the user.  Pipe to proxy in. */
+	sin, err := cmd.StdinPipe()
+	if nil != err {
+		s.Logf("Error getting stdin for shell: %s", err)
+	}
+
+	/* Start the shell going. */
 	if err := cmd.Start(); nil != err {
 		s.Logf("Error starting interactive shell: %s", err)
 		return nil
 	}
-	s.Logf("Starting interactive shell")
+	s.Logf("Started interactive shell")
 	s.Printf("Input is line-oriented, some things may not work.\n")
 	s.Term.SetPrompt("shell> ")
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	/* Send input lines to shell. */
 	go func() {
-		defer wg.Done()
-		defer pw.Close() /* EOF's need this. */
+		defer sin.Close()
 		for {
 			/* Grab a line to send to the shell. */
 			l, err := s.Term.ReadLine()
@@ -217,9 +187,9 @@ func CommandHandlerShell(s Shell, args []string) error {
 				)
 				return
 			}
-			if _, err := pw.Write([]byte(l + "\n")); nil != err {
+			if _, err := fmt.Fprintf(sin, "%s\n", l); nil != err {
 				if !errors.Is(err, io.EOF) &&
-					!errors.Is(err, io.ErrClosedPipe) {
+					!errors.Is(err, fs.ErrClosed) {
 					s.Logf(
 						"Error sending input to "+
 							"interactive shell: "+
@@ -236,37 +206,13 @@ func CommandHandlerShell(s Shell, args []string) error {
 		}
 	}()
 
-	/* Wait for shell to die. */
-	go func() {
-		if err := cmd.Wait(); nil != err {
-			Logf(
-				"[%s] Interactive shell ended with error: %s",
-				s.Tag,
-				err,
-			)
-		} else {
-			Logf("[%s] Interactive shell ended", s.Tag)
-		}
-	}()
-
-	/* Wait until both stdout and stderr die, then tell the user to hit
-	return to get his shell back. */
-	for i := 0; i < 2; i++ {
-		err := <-ech
-		if nil == err {
-			continue
-		}
-		s.Logf("Shell output error: %s", err)
+	if err := cmd.Wait(); nil != err {
+		s.Logf("Shell terminated with error: %s", err)
+	} else {
+		s.Logf("Shell terminated.")
 	}
-	pw.Close()          /* Don't read more from the user. */
-	if 0 == len(args) { /* Warn the user if we have one. */
-		s.Printf(
-			"Shell output died.  Hit enter once or twice.\n",
-		)
-	}
-
+	s.Logf("Hit enter twice to return to the normal prompt.")
 	s.UpdatePrompt(false)
-	wg.Wait()
 	return nil
 }
 
