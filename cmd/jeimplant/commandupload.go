@@ -5,7 +5,7 @@ package main
  * Handler for upload command
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220411
+ * Last Modified 20220509
  */
 
 import (
@@ -21,6 +21,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"text/tabwriter"
 )
@@ -31,11 +32,12 @@ func CommandHandlerUpload(s Shell, args []string) error {
 	s.Printf("\x1b]1337;RequestUpload=format=tgz\x07")
 
 	/* Get the status. */
-	l, err := s.ReadLine()
+	l, err := s.Reader.ReadString('\n')
 	if nil != err {
 		s.Logf("Error getting upload response: %s", err)
 		return nil
 	}
+	l = strings.TrimRight(l, "\n")
 
 	/* Because we don't actually get a newline, we may have to scrape
 	off the answer and use the rest when we can. */
@@ -168,7 +170,7 @@ func readUploadLines(s Shell, w io.WriteCloser, wg *sync.WaitGroup) {
 	defer wg.Done()
 	defer w.Close()
 	for {
-		l, err := s.ReadLine()
+		l, err := s.ReadUploadLine()
 		if nil != err {
 			s.Logf("Error while reading uploaded file: %s", err)
 			return
