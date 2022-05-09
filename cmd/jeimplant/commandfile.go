@@ -5,7 +5,7 @@ package main
  * Command handler to download a file
  * By J. Stuart McMurray
  * Created 20220328
- * Last Modified 20220331
+ * Last Modified 20220509
  */
 
 import (
@@ -129,7 +129,7 @@ func handleB64Upload(s Shell, op, fn string) error {
 
 	for {
 		/* Get a chunk of base64 */
-		l, err := s.ReadLine()
+		l, err := s.Term.ReadLine()
 		/* Unhappy finish. */
 		if "" == l {
 			if !(nil == err || errors.Is(err, io.EOF)) {

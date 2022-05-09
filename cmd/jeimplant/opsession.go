@@ -5,10 +5,11 @@ package main
  * Handle operator channels
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220402
+ * Last Modified 20220509
  */
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -93,7 +94,7 @@ REQLOOP:
 	/* Roll a shell. */
 	shell := Shell{
 		Tag:    tag,
-		Reader: ch,
+		Reader: bufio.NewReader(ch),
 	}
 	if wantPTY {
 		t := term.NewTerminal(ch, "")

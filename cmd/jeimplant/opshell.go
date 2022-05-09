@@ -5,13 +5,13 @@ package main
  * Handle operator shell
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220411
+ * Last Modified 20220509
  */
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -26,23 +26,13 @@ var ErrQuitShell = errors.New("quit shell")
 // Shell is an operator shell
 type Shell struct {
 	Term   faketerm.Term
-	Reader io.Reader /* Underlying reader. */
+	Reader *bufio.Reader /* Underlying reader. */
 	Tag    string
 }
 
-// ReadLine reads a line from s.Reader, until it hits an \r or an \n.  ReadLine
-// reads a byte at a time and is particularly slow.  Do not call ReadLine
-// concurrently with s.Term.Readline.  If an error is encountered while
-// reading, the read bytes will be returned with err == nil.  The next call
-// will return the error.
-func (s Shell) ReadLine() (string, error) {
-	var (
-		sb  strings.Builder
-		b   = make([]byte, 1)
-		err error
-		n   int
-	)
-
+// ReadUploadLine reads until a \r if s.Term is a term.Term or calls
+// s.Term.Readline otherwise.  The \r or \n is not returned.
+func (s Shell) ReadUploadLine() (string, error) {
 	/* Engineered myself into a corner, I did. */
 	switch s.Term.(type) {
 	case *term.Terminal: /* The one which requires work. */
@@ -54,27 +44,12 @@ func (s Shell) ReadLine() (string, error) {
 		return s.Term.ReadLine()
 	}
 
-	/* Read bytes until an error or newline. */
-	for {
-		n, err = s.Reader.Read(b)
-		if 0 != n {
-			if '\r' == b[0] || '\n' == b[0] {
-				break
-			}
-			sb.Write(b)
-		}
-		if nil != err {
-			break
-		}
+	/* We have a term.Terminal.  Read until a \r. */
+	l, err := s.Reader.ReadString('\r')
+	if nil != err {
+		return "", err
 	}
-
-	/* If we have anything, return it minus the newline. */
-	if 0 != sb.Len() {
-		return sb.String(), nil
-	}
-
-	/* Didn't get anything.  Return the error. */
-	return "", err
+	return strings.TrimRight(l, "\r"), nil
 }
 
 // Printf writes to the shell
