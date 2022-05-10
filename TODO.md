@@ -7,3 +7,4 @@ These are ideas for the future.  Some may even be implemented.
 - Implant buildable as shared object file
 - Per-session working directiories
 - Set environment variables
+- Optional b64 in f >
