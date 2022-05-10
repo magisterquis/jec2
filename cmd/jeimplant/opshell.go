@@ -5,7 +5,7 @@ package main
  * Handle operator shell
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220509
+ * Last Modified 20220510
  */
 
 import (
@@ -13,21 +13,62 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/magisterquis/faketerm"
 	"github.com/magisterquis/simpleshsplit"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
 )
 
 // ErrQuitShell indicates that the shell should be terminated, nicely
 var ErrQuitShell = errors.New("quit shell")
 
-// Shell is an operator shell
+// Shell is an operator shell.
 type Shell struct {
 	Term   faketerm.Term
 	Reader *bufio.Reader /* Underlying reader. */
 	Tag    string
+	cwd    string /* Current directory */
+	cwdL   *sync.Mutex
+}
+
+// NewShell returns a new Shell, ready for use.
+func NewShell(
+	tag string,
+	ch ssh.Channel,
+	wantPTY bool, width, height uint32,
+) *Shell {
+	/* Roll a shell. */
+	shell := Shell{
+		Tag:    tag,
+		Reader: bufio.NewReader(ch),
+		cwdL:   new(sync.Mutex),
+	}
+	if wantPTY {
+		t := term.NewTerminal(ch, "")
+		shell.Term = t
+		if err := t.SetSize(int(width), int(height)); nil != err {
+			shell.Logf(
+				"Error setting initial terminal size: %s",
+				err,
+			)
+		}
+	} else {
+		shell.Term = faketerm.New(ch, ch)
+	}
+
+	/* Set the initial cwd to ours. */
+	wd, err := os.Getwd()
+	if nil != err {
+		shell.Logf("Error getting inital working directory: %s", err)
+		wd = string([]rune{os.PathSeparator}) /* Meh. */
+	}
+	shell.ChDir(wd)
+
+	return &shell
 }
 
 // ReadUploadLine reads until a \r if s.Term is a term.Term or calls
@@ -69,28 +110,13 @@ func (s Shell) LogServerf(f string, a ...any) {
 	Logf("[%s] %s", s.Tag, fmt.Sprintf(f, a...))
 }
 
-// UpdatePrompt updates the prompt to display the current directory.  If notify
-// is true, a message will be sent to the shell.
-func (s Shell) UpdatePrompt(notify bool) {
-	wd, err := os.Getwd()
-	if nil != err {
-		s.Printf("Unable to get current directory: %s\n", err)
-		s.Term.SetPrompt("[??] ")
-		return
-	}
-	s.Term.SetPrompt("[" + wd + "] ")
-	if notify {
-		s.Printf("Working directory now %s\n", wd)
-	}
-}
-
 // Write implements io.Writer.  It is a thin wrapper around s.Term.Write.
 func (s Shell) Write(b []byte) (int, error) { return s.Term.Write(b) }
 
 // ProcessCommands reads commands from the terminal, processes them, and writes
 // the output back.  The commands are logged.  An error is returned only if
 // the shell should be closed.
-func (s Shell) ProcessCommands() error {
+func (s *Shell) ProcessCommands() error {
 	for {
 		/* Get a command and its arguments. */
 		l, err := s.Term.ReadLine()
@@ -113,7 +139,7 @@ func (s Shell) ProcessCommands() error {
 
 // ProcessSingleCommand processes a single command.  This may either come from
 // reading the terminal or a single exec.
-func (s Shell) ProcessSingleCommand(cmdline string) error {
+func (s *Shell) ProcessSingleCommand(cmdline string) error {
 	cmd, rest, _ := strings.Cut(cmdline, " ")
 	rest = strings.TrimSpace(rest)
 	args := simpleshsplit.Split(rest)
@@ -148,4 +174,37 @@ func (s Shell) ProcessSingleCommand(cmdline string) error {
 	}
 
 	return nil
+}
+
+// ChDir sets the shell's current directory and sets the prompt to the working
+// directory in square brackets.  If wd is the empty string, the working
+// directory is not changed but the prompt is still set.
+func (s *Shell) ChDir(wd string) {
+	s.cwdL.Lock()
+	defer s.cwdL.Unlock()
+	if "" != wd {
+		if !filepath.IsAbs(wd) {
+			wd = filepath.Join(s.cwd, wd)
+		}
+		wd = filepath.Clean(wd)
+		st, err := os.Stat(wd)
+		if nil != err {
+			s.Logf("Unable to stat %q: %s", wd, err)
+			wd = ""
+		} else if !st.IsDir() {
+			s.Logf("%q is not a directory", wd)
+			wd = ""
+		}
+		if wd != "" {
+			s.cwd = wd
+		}
+	}
+	s.Term.SetPrompt("[" + s.cwd + "] ")
+}
+
+// Getwd gets the shell's current working directory, as set by ChDir.
+func (s *Shell) Getwd() string {
+	s.cwdL.Lock()
+	defer s.cwdL.Unlock()
+	return s.cwd
 }

@@ -5,18 +5,15 @@ package main
  * Handle operator channels
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220509
+ * Last Modified 20220510
  */
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/magisterquis/faketerm"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/term"
 )
 
 // HandleOperatorSession handles a session requested by an operator.
@@ -92,25 +89,11 @@ REQLOOP:
 	}
 
 	/* Roll a shell. */
-	shell := Shell{
-		Tag:    tag,
-		Reader: bufio.NewReader(ch),
-	}
-	if wantPTY {
-		t := term.NewTerminal(ch, "")
-		shell.Term = t
-		if err := t.SetSize(
-			int(ptyParams.Cwidth),
-			int(ptyParams.Cheight),
-		); nil != err {
-			shell.Logf(
-				"Error setting initial terminal size: %s",
-				err,
-			)
-		}
-	} else {
-		shell.Term = faketerm.New(ch, ch)
-	}
+	shell := NewShell(
+		tag,
+		ch,
+		wantPTY, ptyParams.Cwidth, ptyParams.Cheight,
+	)
 	RegisterShell(tag, shell)
 	defer UnregisterShell(tag)
 
@@ -144,7 +127,6 @@ REQLOOP:
 	}
 
 	/* Process commands until we get an error. */
-	shell.UpdatePrompt(false)
 	Logf("[%s] Starting command shell", tag)
 	if err := shell.ProcessCommands(); nil != err &&
 		!errors.Is(err, io.EOF) {
@@ -155,7 +137,7 @@ REQLOOP:
 }
 
 /* handleWindowChangeRequest tells the terminal the new window size. */
-func handleWindowChangeRequest(s Shell, req *ssh.Request) {
+func handleWindowChangeRequest(s *Shell, req *ssh.Request) {
 	/* Unpack the size message. */
 	var size struct {
 		Cols    uint32

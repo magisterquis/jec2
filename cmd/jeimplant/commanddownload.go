@@ -5,7 +5,7 @@ package main
  * Command handler to download a file
  * By J. Stuart McMurray
  * Created 20220328
- * Last Modified 20220331
+ * Last Modified 20220510
  */
 
 import (
@@ -16,7 +16,7 @@ import (
 )
 
 // CommandHandlerDownload downloads the files passed to it using iTerm2.
-func CommandHandlerDownload(s Shell, args []string) error {
+func CommandHandlerDownload(s *Shell, args []string) error {
 	/* Make sure there's at least one file to download. */
 	if 0 == len(args) {
 		s.Printf("Need at least one file to download\n")
@@ -35,7 +35,7 @@ func CommandHandlerDownload(s Shell, args []string) error {
 }
 
 /* downloadFile uses iTerm2 to download the file named fn. */
-func downloadFile(s Shell, fn string) error {
+func downloadFile(s *Shell, fn string) error {
 	/* Make sure we can read the file and get its size. */
 	f, err := os.OpenFile(fn, os.O_RDONLY, 0)
 	if nil != err {

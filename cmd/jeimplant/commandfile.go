@@ -5,7 +5,7 @@ package main
  * Command handler to download a file
  * By J. Stuart McMurray
  * Created 20220328
- * Last Modified 20220509
+ * Last Modified 20220510
  */
 
 import (
@@ -21,7 +21,7 @@ import (
 
 // CommandHandlerFile reads a file to the shell or writes from the shell to
 // a file.
-func CommandHandlerFile(s Shell, args []string) error {
+func CommandHandlerFile(s *Shell, args []string) error {
 	/* We need at least a filename, and maybe an argument. */
 	if 0 == len(args) {
 		s.Printf("Syntax: [operation] file [file...]\n")
@@ -71,7 +71,7 @@ func CommandHandlerFile(s Shell, args []string) error {
 }
 
 /* handleSingleFileRead copies the contents of the file named fn to s. */
-func handleSingleFileRead(s Shell, fn string) (int64, error) {
+func handleSingleFileRead(s *Shell, fn string) (int64, error) {
 	f, err := os.Open(fn)
 	if nil != err {
 		return 0, fmt.Errorf("open: %w", err)
@@ -86,7 +86,7 @@ func handleSingleFileRead(s Shell, fn string) (int64, error) {
 
 /* handleB64Upload reads lines of base64 and writes to the file named fn.  It
 stops on a newline or EOF. */
-func handleB64Upload(s Shell, op, fn string) error {
+func handleB64Upload(s *Shell, op, fn string) error {
 	/* Open the file just right, and wrap the writer in a hasher. */
 	flags := os.O_WRONLY | os.O_CREATE
 	switch op {

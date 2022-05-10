@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220508
+ * Last Modified 20220510
  */
 
 import (
@@ -23,7 +23,7 @@ import (
 )
 
 // CommandHandler is a function which handles a command.
-type CommandHandler func(s Shell, args []string) error
+type CommandHandler func(s *Shell, args []string) error
 
 // CommandHandlers holds the handlers for every command.
 var CommandHandlers = map[string]struct {
@@ -53,10 +53,10 @@ func init() {
 }
 
 // CommandHandlerNoOp is a no-op, for # in CommandHandlers
-func CommandHandlerNoOp(Shell, []string) error { return nil }
+func CommandHandlerNoOp(*Shell, []string) error { return nil }
 
 // CommandHandlerHelp prints the list of commands.
-func CommandHandlerHelp(s Shell, args []string) error {
+func CommandHandlerHelp(s *Shell, args []string) error {
 	/* Sorted list of commands. */
 	cs := make([]string, 0, len(CommandHandlers))
 	for c := range CommandHandlers {
@@ -75,47 +75,28 @@ func CommandHandlerHelp(s Shell, args []string) error {
 }
 
 // CommandHandlerQuit quits the shell
-func CommandHandlerQuit(s Shell, args []string) error {
+func CommandHandlerQuit(s *Shell, args []string) error {
 	s.Printf("Bye.\n")
 	return ErrQuitShell
 }
 
 // CommandHandlerCD changes directories.
-func CommandHandlerCD(s Shell, args []string) error {
+func CommandHandlerCD(s *Shell, args []string) error {
 	/* Need a directory to which to change. */
 	if 1 != len(args) {
 		s.Printf("Need a directory\n")
 		return nil
 	}
 
-	/* Try to change directories. */
-	if err := os.Chdir(args[0]); nil != err {
-		s.Printf(
-			"Unable to change directory to %s: %s\n",
-			args[0],
-			err,
-		)
-		return nil
-	}
+	s.ChDir(args[0])
+	Logf("[%s] Changed directory to %s", s.Tag, args[0])
 
-	/* Log the change. */
-	wd, err := os.Getwd()
-	if nil != err {
-		s.Logf("Unable to get current directory: %s", err)
-		wd = args[0] + " (requested)"
-	}
-	Logf("[%s] Changed directory to %s", s.Tag, wd)
-
-	/* Tell all shells to update their prompt to the new directory. */
-	AllShells(func(tag string, s Shell) {
-		s.UpdatePrompt(true)
-	}, false)
 	return nil
 }
 
 // CommandHandlerShell either sends its args to the shell or, if args is empty,
 // connects the user to a shell.
-func CommandHandlerShell(s Shell, args []string) error {
+func CommandHandlerShell(s *Shell, args []string) error {
 	/* Get a platform-appropriate shell. */
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
@@ -131,6 +112,7 @@ func CommandHandlerShell(s Shell, args []string) error {
 	default:
 		cmd = exec.Command("/bin/sh")
 	}
+	cmd.Dir = s.Getwd()
 	cmd.Stdout = s
 	cmd.Stderr = s
 
@@ -172,6 +154,7 @@ func CommandHandlerShell(s Shell, args []string) error {
 	s.Logf("Started interactive shell")
 	s.Printf("Input is line-oriented, some things may not work.\n")
 	s.Term.SetPrompt("shell> ")
+	defer s.ChDir("")
 
 	/* Send input lines to shell. */
 	go func() {
@@ -212,12 +195,11 @@ func CommandHandlerShell(s Shell, args []string) error {
 		s.Logf("Shell terminated.")
 	}
 	s.Logf("Hit enter twice to return to the normal prompt.")
-	s.UpdatePrompt(false)
 	return nil
 }
 
 // CommandHandlerRun runs a new process with the given argv.
-func CommandHandlerRun(s Shell, args []string) error {
+func CommandHandlerRun(s *Shell, args []string) error {
 	/* Make sure we have something to run. */
 	if 0 == len(args) {
 		s.Printf("Need an argument vector\n")
@@ -225,6 +207,7 @@ func CommandHandlerRun(s Shell, args []string) error {
 	}
 	/* Roll a command to run. */
 	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = s.Getwd()
 	cmd.Stdout = s
 	cmd.Stderr = s
 
@@ -240,7 +223,7 @@ func CommandHandlerRun(s Shell, args []string) error {
 
 // CommandHandlerCopy uses iTerm2 to copy the contents of a file to the
 // pasteboard.  This requires iTerm2.
-func CommandHandlerCopy(s Shell, args []string) error {
+func CommandHandlerCopy(s *Shell, args []string) error {
 	/* Make sure we have exactly one file. */
 	if 1 != len(args) {
 		s.Printf("Need exactly one file to copy\n")

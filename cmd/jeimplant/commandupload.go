@@ -5,7 +5,7 @@ package main
  * Handler for upload command
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220509
+ * Last Modified 20220510
  */
 
 import (
@@ -27,7 +27,7 @@ import (
 )
 
 // CommandHandlerUpload asks the shell to upload things.
-func CommandHandlerUpload(s Shell, args []string) error {
+func CommandHandlerUpload(s *Shell, args []string) error {
 	/* Request an upload. */
 	s.Printf("\x1b]1337;RequestUpload=format=tgz\x07")
 
@@ -110,7 +110,7 @@ func CommandHandlerUpload(s Shell, args []string) error {
 
 /* saveNextFile saves the next uploaded file in unt. */
 func saveNextFile(
-	s Shell,
+	s *Shell,
 	wd string,
 	h *tar.Header,
 	unt *tar.Reader,
@@ -166,7 +166,7 @@ func saveNextFile(
 }
 
 /* readUploadLines reads lines sent as part of an upload into w. */
-func readUploadLines(s Shell, w io.WriteCloser, wg *sync.WaitGroup) {
+func readUploadLines(s *Shell, w io.WriteCloser, wg *sync.WaitGroup) {
 	defer wg.Done()
 	defer w.Close()
 	for {
