@@ -9,7 +9,7 @@
 set -e
 
 # Make sure we have a server address
-if [ "" == "$1" ] || [ "-h" == "$1" ]; then
+if [ "" = "$1" -o "-h" = "$1" ]; then
         echo "Usage: $0 serveraddress" >&2
         exit 1
 fi
@@ -17,7 +17,7 @@ SADDR="$1"
 
 
 # wait_for_file waits for the file $1 to exist, which it calls $2.
-function wait_for_file {
+wait_for_file() {
         echo -n "Waiting for $2... "
         for i in 1 2 3 4 5 6 7 8 9; do
                 if [ -f "$1" ]; then

@@ -4,15 +4,15 @@
 # Generates an implant-builder script
 # By J. Stuart McMurray
 # Created 20220409
-# Last Modified 20220409
+# Last Modified 20220511
 
 set -e
 
-function usage {
+usage() {
         echo "Usage: $0 serveraddr fingerprint implantkeyfile implantdir" >&2
         exit 1
 }
-if [ "-h" == "$1" ]; then
+if [ "-h" = "$1" ]; then
         usage
 fi
 
@@ -49,6 +49,6 @@ echo "FP='$FP'"
 echo "KEY='$(openssl base64 -A -in "$IKEY")'"
 echo
 echo 'cd "$SRCDIR"'
-echo 'if [ "windows" == "$(go env GOOS)" ]; then OUT="$OUT.exe"; fi'
+echo 'if [ "windows" = "$(go env GOOS)" ]; then OUT="$OUT.exe"; fi'
 echo go build -trimpath -ldflags '"'-s -w -X "'main.ServerAddr=\$ADDR'" -X "'main.ServerFP=\$FP'" -X "'main.PrivKey=\$KEY'"'"' -o '"$OUT"' ./cmd/jeimplant
 echo 'ls "$OUT"'
