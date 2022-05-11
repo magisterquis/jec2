@@ -1,1 +1,12 @@
 .*.swp
+.swp
+
+# Generated files
+bin/
+config.json
+id_ed25519_implant
+id_ed25519_operator
+id_ed25519_server
+id_ed25519_server.pub
+implants/
+log
