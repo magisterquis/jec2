@@ -34,6 +34,11 @@ if [ -z "$(which cc 2>/dev/null)" ]; then
         export CGO_ENABLED=0
 fi
 
+# Get all of the dependencies ahead of time to avoid noise in the output
+echo -n "Downloading go dependencies... "
+go mod download
+echo done
+
 # Build and start server
 SVR="jeserver"
 echo -n "Building server... "
