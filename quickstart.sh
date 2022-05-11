@@ -4,7 +4,7 @@
 # Quickly set up a JEC2 server
 # By J. Stuart McMurray
 # Created 20220409
-# Last Modified 20220409
+# Last Modified 20220511
 
 set -e
 
@@ -28,6 +28,11 @@ wait_for_file() {
         done
         ls "$1"
 }
+
+# If we don't have a C compiler, don't build with CGO
+if [ -z "$(which cc 2>/dev/null)" ]; then
+        export CGO_ENABLED=0
+fi
 
 # Build and start server
 SVR="jeserver"
