@@ -36,6 +36,13 @@ disconnection due to OpenSSH trying keys from `$HOME/.ssh` before keys
 specified with `-i`, either add the first key OpenSSH tries to the config file
 or create an ssh [config file](../readme.md#ssh-config) section for the server.
 
+OpenSSH doesn't use the key specified with `-i` for hosts specified with `-J`.
+In practical terms, this means that `ssh -P 10022 localhost list` will work
+fine, but `ssh -J 127.0.0.1:10022 latest` won't.  Fastest way around this is to
+add one of the keys from `~/.ssh/id_*.pub` to `config.json`.  Setting up a
+section in [`~/.ssh/config`](./README.md#ssh-config) is also a good option.
+
+
 
 Defaults
 --------

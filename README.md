@@ -35,10 +35,11 @@ Quickstart
 2. Get the source:
    `git clone https://github.com/magisterquis/jec2.git`
 3. Set everything up the easy way:
-   `cd jec2 && ./quickstart.sh ssh://SERVERADDR:10022`
+   `cd jec2 && ./quickstart.sh ssh://$(curl -s icanhazip.com):10022`
 4. Optionally watch server logs:
    `tail -f $HOME/jec2/log`
 4. Optionally tweak `$HOME/jec2/conf.json` and `pkill -HUP jeserver`
+   (recommendation: add `~/.ssh/id_something.pub` as an Operator key)
 5. Run an implant from `$HOME/jec2/implants` on a target somewhere
 6. List connected implants:
    `ssh -i $HOME/jec2/id_ed25519_operator -p 10022 127.0.0.1 list`
