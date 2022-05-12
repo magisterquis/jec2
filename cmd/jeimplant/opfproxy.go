@@ -5,7 +5,7 @@ package main
  * Handle request to forward proxy (-L)
  * By J. Stuart McMurray
  * Created 20220329
- * Last Modified 20220411
+ * Last Modified 20220512
  */
 
 import (
@@ -19,8 +19,14 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// PseudohostWebDAV is the hostname in -L to use to proxy to internal WebDAV.
-const PseudohostWebDAV = "webdav"
+const (
+	// PseudohostWebDAV is the hostname in -L to use to proxy to internal
+	// WebDAV.
+	PseudohostWebDAV = "webdav"
+	// ProxyDialTimeout is the amount of time to wait for a forwarded
+	// connection to establish.
+	ProxyDialTimeout = time.Minute
+)
 
 // HandleOperatorForwardProxy handles a request for a forward proxy
 // (direct-tcpip).
@@ -65,7 +71,7 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 		connSpec.DHost,
 		fmt.Sprintf("%d", connSpec.DPort),
 	)
-	c, err := net.Dial("tcp", target)
+	c, err := net.DialTimeout("tcp", target, ProxyDialTimeout)
 	if nil != err {
 		Logf(
 			"[%s] Requested connection to %s failed: %s",
@@ -75,7 +81,7 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 		)
 		nc.Reject(
 			ssh.ConnectionFailed,
-			fmt.Sprintf("Dial: %s", err),
+			fmt.Sprintf("DialTimeout: %s", err),
 		)
 		return
 	}
