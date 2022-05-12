@@ -204,9 +204,9 @@ func CommandHandlerShell(s *Shell, args []string) error {
 	if err := cmd.Wait(); nil != err {
 		s.Logf("Shell terminated with error: %s", err)
 	} else {
-		s.Logf("Shell terminated.")
+		s.Logf("Shell terminated successfully.")
 	}
-	s.Logf("Hit enter twice to return to the normal prompt.")
+	fmt.Fprintf(s, "Hit enter twice to return to the normal prompt.\n")
 	return nil
 }
 
