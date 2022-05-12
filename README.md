@@ -29,7 +29,7 @@ Features
 
 Quickstart
 ----------
-1. Have git and the [Go compiler](https://go.dev/doc/install)
+1. Have git and the [Go compiler](https://go.dev/doc/install) (1.18+)
 2. Work out the server's extrnal address or something which points at port
    10222 on the server
 2. Get the source:
