@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220510
+ * Last Modified 20220512
  */
 
 import (
@@ -71,7 +71,19 @@ func CommandHandlerHelp(s *Shell, args []string) error {
 	for _, c := range cs {
 		fmt.Fprintf(tw, "%s\t%s\n", c, CommandHandlers[c].Help)
 	}
-	return tw.Flush()
+	if err := tw.Flush(); nil != err {
+		return err
+	}
+
+	/* Tell the user other commands will be sent to a shell. */
+	if _, err := fmt.Fprintf(
+		s,
+		"\nOther commands will be executed in their own shell.\n",
+	); nil != err {
+		return err
+	}
+
+	return nil
 }
 
 // CommandHandlerQuit quits the shell
