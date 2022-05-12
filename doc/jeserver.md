@@ -93,6 +93,7 @@ Command                  | Description
 `help`                   | This help
 `help list`              | A definitive list of commands
 `fingerprint`            | Get the server's hostkey fingerprint
+`info`                   | Display (very) basic server info
 `kill implant`           | Kill an implant by name
 `list`                   | List implants
 `reload`                 | Reload server config, SIGHUP-style
