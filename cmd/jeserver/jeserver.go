@@ -6,7 +6,7 @@ package main
  * Just Enough C2
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220402
+ * Last Modified 20220512
  */
 
 import (
@@ -105,6 +105,9 @@ Options:
 	} else {
 		log.SetOutput(os.Stdout)
 	}
+
+	/* Prepare HTTP service. */
+	RegisterHTTPHandlers()
 
 	/* Start service. */
 	log.Printf("JEC2 starting")

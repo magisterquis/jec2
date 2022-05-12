@@ -70,7 +70,7 @@ func ListenSSH(addr string) error {
 	log.Printf("Listening for SSH connections on %s", l.Addr())
 
 	/* Start serving. */
-	go acceptAndHandle(l, "SSH")
+	go acceptAndHandle(l, "SSH", HandleSSH)
 
 	return nil
 }
@@ -107,19 +107,19 @@ func ListenTLS(addr, certF, keyF string) error {
 	log.Printf("Listening for TLS connections on %s", l.Addr())
 
 	/* Start serving. */
-	go acceptAndHandle(l, "TLS")
+	go acceptAndHandle(l, "TLS", HandleTLS)
 
 	return nil
 }
 
 /* acceptAndHandle accepts and handles clients for the given type of
 connection. */
-func acceptAndHandle(l net.Listener, hcType string) {
+func acceptAndHandle(l net.Listener, hcType string, handle func(net.Conn)) {
 	for {
 		/* Get a client. */
 		c, err := l.Accept()
 		if nil == err { /* All worked. */
-			go HandleSSH(c)
+			go handle(c)
 			continue
 		}
 		/* If we're closed the happy way, that's ok. */
