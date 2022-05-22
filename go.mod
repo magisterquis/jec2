@@ -3,6 +3,7 @@ module github.com/magisterquis/jec2
 go 1.18
 
 require (
+	github.com/magisterquis/bin2memfd v0.0.0-20220522163420-0cabae37b87c
 	github.com/magisterquis/faketerm v0.0.0-20220327184451-0c19153f9ae3
 	github.com/magisterquis/simpleshsplit v0.0.0-20180804063258-0512dc2effe2
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a

@@ -1,3 +1,5 @@
+github.com/magisterquis/bin2memfd v0.0.0-20220522163420-0cabae37b87c h1:l1AVUQQsVbBMsqxk1CIUKBTYiOZ+uUQQFhyyiYuAtyM=
+github.com/magisterquis/bin2memfd v0.0.0-20220522163420-0cabae37b87c/go.mod h1:sh1SRrPQZHNpYZLHUnZKQnMBSOjwZ+gWygd14cMSeHs=
 github.com/magisterquis/faketerm v0.0.0-20220327184451-0c19153f9ae3 h1:UF27T7JeQ8y0m/hTKB0bU5mDYXdyYHeUdOClcRQ4aos=
 github.com/magisterquis/faketerm v0.0.0-20220327184451-0c19153f9ae3/go.mod h1:g1FlQWazqEZsHQcR9bUbEsGohgNsoo8aTuLVkgXAAVQ=
 github.com/magisterquis/simpleshsplit v0.0.0-20180804063258-0512dc2effe2 h1:9AadCconNkc0eI46aV3Z8/25BR6+8rwAgEYyoSs468k=

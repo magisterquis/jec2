@@ -7,6 +7,7 @@ These are ideas for the future.  Some may even be implemented.
 - Implant buildable as shared object file
 - Set environment variables
 - Optional b64 in f >
+- Change argv with memfd_create'd binaries
 
 Done
 ====
