@@ -5,7 +5,7 @@ package main
  * Handler for upload command
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220510
+ * Last Modified 20220523
  */
 
 import (
@@ -68,13 +68,6 @@ func CommandHandlerUpload(s *Shell, args []string) error {
 	defer unz.Close()
 	unt := tar.NewReader(unz)
 
-	/* Work out where we are.  We'll write files here. */
-	wd, err := os.Getwd()
-	if nil != err {
-		s.Printf("Unable to determine working directory: %s\n", err)
-		wd = "."
-	}
-
 	/* Nice table of files we've extracted. */
 	var b bytes.Buffer
 	tw := tabwriter.NewWriter(&b, 2, 8, 2, ' ', 0)
@@ -91,7 +84,7 @@ func CommandHandlerUpload(s *Shell, args []string) error {
 			break
 		}
 		/* Try to save the next file. */
-		if err := saveNextFile(s, wd, h, unt, tw); nil != err {
+		if err := saveNextFile(s, h, unt, tw); nil != err {
 			s.Logf("Error saving %s: %s", h.Name, err)
 		}
 	}
@@ -111,14 +104,13 @@ func CommandHandlerUpload(s *Shell, args []string) error {
 /* saveNextFile saves the next uploaded file in unt. */
 func saveNextFile(
 	s *Shell,
-	wd string,
 	h *tar.Header,
 	unt *tar.Reader,
 	tw io.Writer,
 ) error {
 	/* Get file metadata on our terms. */
 	fi := h.FileInfo()
-	fn := filepath.Join(wd, h.Name)
+	fn := filepath.Join(s.Getwd(), h.Name)
 
 	/* Make sure we have a file we can handle. */
 	switch m := fi.Mode() & fs.ModeType; m {
