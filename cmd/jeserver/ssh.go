@@ -5,13 +5,11 @@ package main
  * Handle general listeners
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220412
+ * Last Modified 20220524
  */
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"os"
@@ -88,7 +86,9 @@ func GenSSHConfig(banner string) error {
 
 // HandleSSH handles a new SSH client.
 func HandleSSH(c net.Conn) {
-	tag := "SSH:" + c.RemoteAddr().String()
+	tag := Tag{
+		suf: "SSH:" + c.RemoteAddr().String(),
+	}
 
 	/* Get SSH config.  If we don't have one, something's gone wrong. */
 	defer c.Close()
@@ -106,36 +106,38 @@ func HandleSSH(c net.Conn) {
 		log.Printf("[%s] Handshake error: %s", tag, err)
 		return
 	}
-	var (
-		ct string /* Connection type */
-		hf func(  /* Handler function */
-			string,
-			*ssh.ServerConn,
-			<-chan ssh.NewChannel,
-			<-chan *ssh.Request,
-		) error
-	)
 
 	/* Handle the connection. */
+	var hf func( /* Handler function */
+		Tag,
+		*ssh.ServerConn,
+		<-chan ssh.NewChannel,
+		<-chan *ssh.Request,
+	)
 	switch t := sc.Permissions.Extensions["key-type"]; t {
 	case KeyTypeOperator:
-		tag = fmt.Sprintf("%s@%s", sc.User(), sc.RemoteAddr())
+		tag = Tag{
+			suf: fmt.Sprintf("%s@%s", sc.User(), sc.RemoteAddr()),
+		}
 		log.Printf(
 			"[%s] Operator connected with key %s",
 			tag,
 			sc.Permissions.Extensions["fingerprint"],
 		)
-		ct = "Operator"
 		hf = HandleOperator
 	case KeyTypeImplant:
-		tag = fmt.Sprintf("%s", sc.Permissions.Extensions["snum"])
+		tag = Tag{
+			suf: fmt.Sprintf(
+				"%s",
+				sc.Permissions.Extensions["snum"],
+			),
+		}
 		log.Printf(
 			"[%s] Implant connected with key %s and username %q",
 			tag,
 			sc.Permissions.Extensions["fingerprint"],
 			sc.User(),
 		)
-		ct = "Implant"
 		hf = HandleImplant
 	default:
 		log.Printf("[%s] Unknown key type %s", tag, t)
@@ -143,20 +145,7 @@ func HandleSSH(c net.Conn) {
 	}
 
 	/* Service the connection. */
-	go func() {
-		if err := hf(tag, sc, chans, reqs); nil != err {
-			log.Printf("[%s] %s service error: %s", tag, ct, err)
-		}
-	}()
-
-	/* Nice log for when client disconnects. */
-	err = sc.Wait()
-	if nil == err || errors.Is(err, io.EOF) {
-		log.Printf("[%s] %s disconnected", tag, ct)
-		return
-	}
-	log.Printf("[%s] %s disconnected: %s", tag, ct, err)
-
+	hf(tag, sc, chans, reqs)
 }
 
 /* sshPublkcKeyCallback is used as the PublicKeyCallback in the SSH server

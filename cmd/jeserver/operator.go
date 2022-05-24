@@ -5,7 +5,7 @@ package main
  * Handle operator connections
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220418
+ * Last Modified 20220524
  */
 
 import (
@@ -18,29 +18,37 @@ import (
 
 // HandleOperator handles a connection from an operator.
 func HandleOperator(
-	tag string,
+	tag Tag,
 	sc *ssh.ServerConn,
 	chans <-chan ssh.NewChannel,
 	reqs <-chan *ssh.Request,
-) error {
+) {
+	/* Handle incoming channels and requests. */
 	go handleOperatorRequests(tag, reqs)
+	go func() {
+		n := 0
+		for nc := range chans {
+			tag := tag.Append("c%d", n)
+			n++
+			go handleOperatorChannel(tag, sc, nc)
+		}
+	}()
 
-	n := 0
-	for nc := range chans {
-		tag := fmt.Sprintf("%s-c%d", tag, n)
-		n++
-		go handleOperatorChannel(tag, sc, nc)
+	/* Wait for the connection to shut down. */
+	if werr := sc.Wait(); nil != werr {
+		log.Printf("[%s] Disconnected with error: %s", tag, werr)
+		return
+	} else {
+		log.Printf("[%s] Disconnected", tag)
 	}
-
-	return nil
 }
 
 /* handleOperatorRequests handles the global requests sent by an operator. */
-func handleOperatorRequests(tag string, reqs <-chan *ssh.Request) {
+func handleOperatorRequests(tag Tag, reqs <-chan *ssh.Request) {
 	n := 0 /* Request number. */
 	for req := range reqs {
 		/* Request-specific tag. */
-		tag := fmt.Sprintf("%s-r%d", tag, n)
+		tag := tag.Append("r%d", n)
 		n++
 		switch req.Type {
 		case "keepalive@openssh.com", "no-more-sessions@openssh.com":
@@ -53,7 +61,7 @@ func handleOperatorRequests(tag string, reqs <-chan *ssh.Request) {
 }
 
 /* handleOperatorChannel handles a new channel request from an operator. */
-func handleOperatorChannel(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
+func handleOperatorChannel(tag Tag, sc *ssh.ServerConn, nc ssh.NewChannel) {
 	/* Work out the proper handler function. */
 	t := nc.ChannelType()
 	switch t {
@@ -69,7 +77,7 @@ func handleOperatorChannel(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 }
 
 /* handleOperatorSession handles a session channel from an operator. */
-func handleOperatorSession(tag string, nc ssh.NewChannel) {
+func handleOperatorSession(tag Tag, nc ssh.NewChannel) {
 	/* Accept the channel. */
 	ch, reqs, err := nc.Accept()
 	if nil != err {
@@ -83,7 +91,7 @@ func handleOperatorSession(tag string, nc ssh.NewChannel) {
 	defer ch.Close()
 
 	/* Log a message and also write it to the operator. */
-	lm := func(tag, f string, a ...any) error {
+	lm := func(tag Tag, f string, a ...any) error {
 		m := fmt.Sprintf(f, a...)
 		log.Printf("[%s] %s", tag, m)
 		_, err := fmt.Fprintf(ch, "%s\n", m)
@@ -102,7 +110,7 @@ func handleOperatorSession(tag string, nc ssh.NewChannel) {
 	)
 REQLOOP:
 	for req = range reqs {
-		rtag := fmt.Sprintf("%s-r%d", tag, n)
+		rtag := tag.Append("r%d", n)
 		n++
 		switch req.Type {
 		case "exec": /* The only thing we handle. */
@@ -163,7 +171,7 @@ REQLOOP:
 	/* Shouldn't probably get any other requests. */
 	go func() {
 		for req := range reqs {
-			tag := fmt.Sprintf("%s-r%d", tag, n)
+			tag := tag.Append("r%d", n)
 			n++
 			switch req.Type {
 			case "eow@openssh.com": /* Silently ignore */

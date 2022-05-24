@@ -5,7 +5,7 @@ package main
  * Handle request to forward proxy (-L)
  * By J. Stuart McMurray
  * Created 20220329
- * Last Modified 20220512
+ * Last Modified 20220524
  */
 
 import (
@@ -15,7 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -101,7 +100,7 @@ func HandleOperatorForwardProxy(tag string, nc ssh.NewChannel) {
 		return
 	}
 	defer ch.Close()
-	go common.DiscardRequests(tag, reqs)
+	go DiscardRequests(tag, reqs)
 
 	ProxyTCP(tag, ch, c)
 

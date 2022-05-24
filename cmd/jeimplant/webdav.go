@@ -5,7 +5,7 @@ package main
  * Handle WebDAV filesharing
  * By J. Stuart McMurray
  * Created 20220331
- * Last Modified 20220410
+ * Last Modified 20220524
  */
 
 import (
@@ -123,7 +123,7 @@ func HandleWebDAVChannel(tag string, nc ssh.NewChannel) {
 		return
 	}
 	/* Shouldn't be anything here. */
-	go common.DiscardRequests(tag, reqs)
+	go DiscardRequests(tag, reqs)
 	/* Send it to the WebDAV server.  This will close the channel when
 	it's done. */
 	if err := WDListener.SendReadWriter(ch); nil != err {

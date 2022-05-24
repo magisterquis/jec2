@@ -5,7 +5,7 @@ package main
  * Proxy an operator to an implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220410
+ * Last Modified 20220524
  */
 
 import (
@@ -23,7 +23,7 @@ to connect to itself.  This can simplify SSH commands. */
 const dAddrServer = "server"
 
 // HandleOperatorForward handles an operator connecting to an implant.
-func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
+func HandleOperatorForward(tag Tag, sc *ssh.ServerConn, nc ssh.NewChannel) {
 	/* Work out where the operator whants to go. */
 	var connReq struct {
 		DAddr string /* Only really care about this one. */
@@ -50,7 +50,7 @@ func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 			)
 			return
 		}
-		go common.DiscardRequests(tag, reqs)
+		go discardRequests(tag, reqs)
 		defer ch.Close()
 		HandleSSH(chanConn{
 			Channel: ch,
@@ -90,7 +90,7 @@ func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 		log.Printf(
 			"[%s] Implant %q rejected operator connection: %s",
 			tag,
-			imp.Name,
+			imp.Name(),
 			err,
 		)
 		nc.Reject(
@@ -101,7 +101,7 @@ func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 	}
 	defer ich.Close()
 	go ssh.DiscardRequests(ireqs)
-	log.Printf("[%s] Forwarding connection to %s", tag, imp.Name)
+	log.Printf("[%s] Forwarding connection to %s", tag, imp.Name())
 
 	/* Proxy between the two. */
 	ch, reqs, err := nc.Accept()
@@ -109,7 +109,7 @@ func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 		log.Printf("[%s] Error accepting proxy request: %s", tag, err)
 		return
 	}
-	go common.DiscardRequests(tag, reqs)
+	go discardRequests(tag, reqs)
 	defer ch.Close()
 
 	/* Proxy between them. */
@@ -132,5 +132,20 @@ func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 		log.Printf("[%s] Proxy error: %s", tag, err)
 	}
 	wg.Wait()
-	log.Printf("[%s] Connection to %s finished", tag, imp.Name)
+	log.Printf("[%s] Connection to %s finished", tag, imp.Name())
+}
+
+/* discardRequests is like ssh.DiscardRequests but logs the requests. */
+func discardRequests(tag Tag, reqs <-chan *ssh.Request) {
+	n := 0
+	for req := range reqs {
+		rtag := tag.Append("r%d", n)
+		n++
+		log.Printf(
+			"[%s] Unexpected %q channel request",
+			rtag,
+			req.Type,
+		)
+		req.Reply(false, nil)
+	}
 }
