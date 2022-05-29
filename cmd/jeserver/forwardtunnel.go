@@ -9,6 +9,7 @@ package main
  */
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -96,6 +97,22 @@ func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 	/* Open up a channel for forwarding. */
 	ich, ireqs, err := imp.C.OpenChannel(common.Operator, nil)
 	if nil != err {
+		if errors.Is(err, io.EOF) {
+			log.Printf(
+				"[%s] Implant %q seems no longer connected",
+				tag,
+				imp.Name,
+			)
+			if err := imp.Close(); nil != err {
+				log.Printf(
+					"[%s] Error killing implant %q: %s",
+					tag,
+					imp.Name,
+					err,
+				)
+			}
+			return
+		}
 		log.Printf(
 			"[%s] Implant %q rejected operator connection: %s",
 			tag,
