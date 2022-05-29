@@ -5,7 +5,7 @@ package main
  * Proxy an operator to an implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220410
+ * Last Modified 20220529
  */
 
 import (
@@ -21,6 +21,12 @@ import (
 /* dAddrServer may be requested as a destination address to ask the server
 to connect to itself.  This can simplify SSH commands. */
 const dAddrServer = "server"
+
+var (
+	/* intN is a counter used to distinguish (int) connections. */
+	intN  uint64
+	intNL sync.Mutex
+)
 
 // HandleOperatorForward handles an operator connecting to an implant.
 func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
@@ -52,21 +58,24 @@ func HandleOperatorForward(tag string, sc *ssh.ServerConn, nc ssh.NewChannel) {
 		}
 		go common.DiscardRequests(tag, reqs)
 		defer ch.Close()
+		intNL.Lock()
+		addr := fmt.Sprintf(
+			"%s(int-%d)",
+			sc.LocalAddr().String(),
+			intN,
+		)
+		intN++
+		intNL.Unlock()
+
 		HandleSSH(chanConn{
 			Channel: ch,
 			laddr: common.FakeAddr{
-				Net: sc.LocalAddr().Network(),
-				Addr: fmt.Sprintf(
-					"%s(int)",
-					sc.LocalAddr().String(),
-				),
+				Net:  sc.LocalAddr().Network(),
+				Addr: addr,
 			},
 			raddr: common.FakeAddr{
-				Net: sc.RemoteAddr().Network(),
-				Addr: fmt.Sprintf(
-					"%s(int)",
-					sc.RemoteAddr().String(),
-				),
+				Net:  sc.RemoteAddr().Network(),
+				Addr: addr,
 			},
 		})
 		return
