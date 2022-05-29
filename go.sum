@@ -2,6 +2,8 @@ github.com/magisterquis/bin2memfd v0.0.0-20220522163420-0cabae37b87c h1:l1AVUQQs
 github.com/magisterquis/bin2memfd v0.0.0-20220522163420-0cabae37b87c/go.mod h1:sh1SRrPQZHNpYZLHUnZKQnMBSOjwZ+gWygd14cMSeHs=
 github.com/magisterquis/faketerm v0.0.0-20220327184451-0c19153f9ae3 h1:UF27T7JeQ8y0m/hTKB0bU5mDYXdyYHeUdOClcRQ4aos=
 github.com/magisterquis/faketerm v0.0.0-20220327184451-0c19153f9ae3/go.mod h1:g1FlQWazqEZsHQcR9bUbEsGohgNsoo8aTuLVkgXAAVQ=
+github.com/magisterquis/flexiwriter v0.0.0-20220529111536-a3f40b118766 h1:69Z/q5mDLynDManlMG3iUzHVu323fXdBqVJm/wfqKYM=
+github.com/magisterquis/flexiwriter v0.0.0-20220529111536-a3f40b118766/go.mod h1:ps+1uSfkU1dlg0jbzllgorurjfqYyE5+pZroVXtIrWY=
 github.com/magisterquis/simpleshsplit v0.0.0-20180804063258-0512dc2effe2 h1:9AadCconNkc0eI46aV3Z8/25BR6+8rwAgEYyoSs468k=
 github.com/magisterquis/simpleshsplit v0.0.0-20180804063258-0512dc2effe2/go.mod h1:6iLKLn+u3Ng9J4VmBwuhXdq2EQ83ojU0I937i/HH6u0=
 github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a h1:eU8j/ClY2Ty3qdHnn0TyW3ivFoPC/0F1gQZz8yTxbbE=

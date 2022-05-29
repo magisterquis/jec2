@@ -96,6 +96,7 @@ Command                  | Description
 `info`                   | Display (very) basic server info
 `kill implant`           | Kill an implant by name
 `list`                   | List implants
+`logs`                   | Stream server logs
 `reload`                 | Reload server config, SIGHUP-style
 `rename fromname toname` | Rename an implant
 

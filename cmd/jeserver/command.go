@@ -5,7 +5,7 @@ package main
  * Handle commands from an operator
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220512
+ * Last Modified 20220529
  */
 
 import (
@@ -38,6 +38,7 @@ func init() {
 	commandHandlers["list"] = CommandListImplants
 	commandHandlers["rename"] = CommandRenameImplant
 	commandHandlers["info"] = CommandInfo
+	commandHandlers["logs"] = CommandLogs
 }
 
 /* commandPrintHelp prints help to the operator. */
@@ -56,6 +57,7 @@ fingerprint              - Get the server's hostkey fingerprint
 info                     - Basic server info
 kill implant             - Kill an implant by name
 list                     - List implants
+logs                     - Stream server logs
 reload                   - Reload server config, SIGHUP-style
 rename fromname toname   - Rename an implant
 

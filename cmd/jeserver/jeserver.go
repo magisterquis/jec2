@@ -6,22 +6,26 @@ package main
  * Just Enough C2
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220512
+ * Last Modified 20220529
  */
 
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
+
+	"github.com/magisterquis/flexiwriter"
 )
 
 /* workDirName is the name of the working directory, normally in $HOME. */
 const workDirName = "jec2"
+
+/* LogWriter is the FlexiWriter to which log messages are written. */
+var LogWriter = flexiwriter.New()
 
 func main() {
 	var (
@@ -87,6 +91,9 @@ Options:
 	}
 
 	/* Work out where to log. */
+	if *logStdout {
+		LogWriter.Add(os.Stdout)
+	}
 	if "" != *logName {
 		f, err := os.OpenFile(
 			*logName,
@@ -94,17 +101,16 @@ Options:
 			0600,
 		)
 		if nil != err {
-			log.Fatalf("Unable to open logfile %s: %s", *logName, err)
+			log.Fatalf(
+				"Unable to open logfile %s: %s",
+				*logName,
+				err,
+			)
 		}
 		defer f.Close()
-		if *logStdout {
-			log.SetOutput(io.MultiWriter(os.Stdout, f))
-		} else {
-			log.SetOutput(f)
-		}
-	} else {
-		log.SetOutput(os.Stdout)
+		LogWriter.Add(f)
 	}
+	log.SetOutput(LogWriter)
 
 	/* Prepare HTTP service. */
 	RegisterHTTPHandlers()

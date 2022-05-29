@@ -5,11 +5,13 @@ package main
  * Handle operator connections
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220418
+ * Last Modified 20220529
  */
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
@@ -199,7 +201,7 @@ REQLOOP:
 		"exit-status",
 		false,
 		ssh.Marshal(struct{ N uint32 }{}),
-	); nil != err {
+	); nil != err && !errors.Is(err, io.EOF) {
 		log.Printf(
 			"[%s] Error sending command exit status: %s",
 			tag,
