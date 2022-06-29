@@ -1,11 +1,11 @@
-package common
+package main
 
 /*
  * reqs.go
  * Slightly better request-discarder
  * By J. Stuart McMurray
  * Created 20220409
- * Last Modified 20220409
+ * Last Modified 20220524
  */
 
 import (
@@ -17,6 +17,7 @@ import (
 
 // DiscardRequests is like ssh.DiscardRequests but logs the requests.
 func DiscardRequests(tag string, reqs <-chan *ssh.Request) {
+	/* TODO: Move to JEServer. */
 	n := 0
 	for req := range reqs {
 		rtag := fmt.Sprintf("%s-r%d", tag, n)

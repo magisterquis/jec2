@@ -5,7 +5,7 @@ package main
  * Channels between C2 and implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220402
+ * Last Modified 20220524
  */
 
 import (
@@ -51,7 +51,7 @@ func handleOperatorChan(tag string, nc ssh.NewChannel) {
 	Logf("[%s] New connection", tag)
 
 	/* Shouldn't get any of these. */
-	go common.DiscardRequests(tag, reqs)
+	go DiscardRequests(tag, reqs)
 
 	/* SSH library requires a net.Conn.  We'll proxy the channel to what
 	is more or less a wrapper. */

@@ -5,7 +5,7 @@ package main
  * Handle SSH keys
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220328
+ * Last Modified 20220524
  */
 
 import (
@@ -71,11 +71,11 @@ func SetAllowedKeys(op, imp []string, allImplants bool) error {
 	operatorFPs = strings.Join(ofps, " ")
 
 	/* Tell implants to update keys. */
-	AllImplants(func(imp Implant) {
+	AllImplants(func(imp *Implant) {
 		if err := imp.SetAllowedOperatorFingerprints(); nil != err {
 			log.Printf(
 				"[%s] Updating allowed fingerprints: %s",
-				imp.Name,
+				imp.Name(),
 				err,
 			)
 		}

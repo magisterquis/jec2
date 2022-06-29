@@ -5,7 +5,7 @@ package main
  * Handle request to reverse proxy (-R)
  * By J. Stuart McMurray
  * Created 20220330
- * Last Modified 20220418
+ * Last Modified 20220524
  */
 
 import (
@@ -16,7 +16,6 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/magisterquis/jec2/cmd/internal/common"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -215,7 +214,7 @@ func handleRemoteForward(
 		return
 	}
 	/* We shouldn't get anything here. */
-	go common.DiscardRequests(tag, reqs)
+	go DiscardRequests(tag, reqs)
 	defer ch.Close()
 
 	/* Actually do the proxy. */

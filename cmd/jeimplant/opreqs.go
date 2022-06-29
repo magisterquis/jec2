@@ -5,7 +5,7 @@ package main
  * Handle operator global requests
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220418
+ * Last Modified 20220524
  */
 
 import (
