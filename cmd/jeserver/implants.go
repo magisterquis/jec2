@@ -5,7 +5,7 @@ package main
  * Wrangle implants
  * By J. Stuart McMurray
  * Created 20220522
- * Last Modified 20220524
+ * Last Modified 20220714
  */
 
 import (
@@ -148,7 +148,8 @@ func HandleImplant(
 		to the next-latest implant. */
 		latestImplant = nil /* Default to no implant. */
 		for _, sci := range implants {
-			if sci.When().After(latestImplant.When()) {
+			if nil == latestImplant ||
+				sci.When().After(latestImplant.When()) {
 				latestImplant = sci
 			}
 		}
