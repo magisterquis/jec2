@@ -5,7 +5,7 @@ package main
  * Handle operator shell
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220510
+ * Last Modified 20220715
  */
 
 import (
@@ -66,7 +66,14 @@ func NewShell(
 		shell.Logf("Error getting inital working directory: %s", err)
 		wd = string([]rune{os.PathSeparator}) /* Meh. */
 	}
-	shell.ChDir(wd)
+	if err := shell.ChDir(wd); nil != err {
+		Logf("Error setting initial directory: %s", err)
+		shell.Printf(
+			"Expect weirdness due to failure changing "+
+				"working directory: %s",
+			err,
+		)
+	}
 
 	return &shell
 }
@@ -179,7 +186,7 @@ func (s *Shell) ProcessSingleCommand(cmdline string) error {
 // ChDir sets the shell's current directory and sets the prompt to the working
 // directory in square brackets.  If wd is the empty string, the working
 // directory is not changed but the prompt is still set.
-func (s *Shell) ChDir(wd string) {
+func (s *Shell) ChDir(wd string) error {
 	s.cwdL.Lock()
 	defer s.cwdL.Unlock()
 	if "" != wd {
@@ -189,17 +196,15 @@ func (s *Shell) ChDir(wd string) {
 		wd = filepath.Clean(wd)
 		st, err := os.Stat(wd)
 		if nil != err {
-			s.Logf("Unable to stat %q: %s", wd, err)
-			wd = ""
+			return fmt.Errorf("stat: %w", err)
 		} else if !st.IsDir() {
-			s.Logf("%q is not a directory", wd)
-			wd = ""
+			return fmt.Errorf("not a directory")
 		}
-		if wd != "" {
-			s.cwd = wd
-		}
+		s.cwd = wd
 	}
 	s.Term.SetPrompt("[" + s.cwd + "] ")
+
+	return nil
 }
 
 // Getwd gets the shell's current working directory, as set by ChDir.

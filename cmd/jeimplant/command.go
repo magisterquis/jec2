@@ -5,7 +5,7 @@ package main
  * Command handlers
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220512
+ * Last Modified 20220715
  */
 
 import (
@@ -100,8 +100,11 @@ func CommandHandlerCD(s *Shell, args []string) error {
 		return nil
 	}
 
-	s.ChDir(args[0])
-	Logf("[%s] Changed directory to %s", s.Tag, args[0])
+	if err := s.ChDir(args[0]); nil != err {
+		s.Logf("Unable to change directory to %s: %s", args[0], err)
+		return nil
+	}
+	Logf("[%s] Changed directory to %s", s.Tag, s.Getwd())
 
 	return nil
 }
