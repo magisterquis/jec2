@@ -5,7 +5,7 @@ package main
  * Command handler to download a file
  * By J. Stuart McMurray
  * Created 20220328
- * Last Modified 20220510
+ * Last Modified 20220715
  */
 
 import (
@@ -24,6 +24,7 @@ func CommandHandlerDownload(s *Shell, args []string) error {
 	}
 	/* Download all the files. */
 	for _, fn := range args {
+		fn = s.PathTo(fn)
 		if err := downloadFile(s, fn); nil != err {
 			s.Logf("Error downloading %s: %s", fn, err)
 			continue

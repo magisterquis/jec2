@@ -245,9 +245,10 @@ func CommandHandlerCopy(s *Shell, args []string) error {
 		return nil
 	}
 	/* Open the file in question. */
-	f, err := os.Open(args[0])
+	fn := s.PathTo(args[0])
+	f, err := os.Open(fn)
 	if nil != err {
-		s.Printf("Unable to open %s: %s", args[0], err)
+		s.Printf("Unable to open %s: %s", fn, err)
 	}
 	defer f.Close()
 

@@ -5,7 +5,7 @@ package main
  * Command handler to download a file
  * By J. Stuart McMurray
  * Created 20220328
- * Last Modified 20220510
+ * Last Modified 20220715
  */
 
 import (
@@ -72,7 +72,7 @@ func CommandHandlerFile(s *Shell, args []string) error {
 
 /* handleSingleFileRead copies the contents of the file named fn to s. */
 func handleSingleFileRead(s *Shell, fn string) (int64, error) {
-	f, err := os.Open(fn)
+	f, err := os.Open(s.PathTo(fn))
 	if nil != err {
 		return 0, fmt.Errorf("open: %w", err)
 	}

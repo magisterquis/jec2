@@ -213,3 +213,19 @@ func (s *Shell) Getwd() string {
 	defer s.cwdL.Unlock()
 	return s.cwd
 }
+
+// PathTo returns a path suitable for passing to os.Open and such.
+// PathTo returns a suitable path to the path p, possibly relative to s's
+// working directory.  If p is a relative path, it'll be joined to the shell's
+// working directory.  If p is an absolute path, it'll be returend unchanged.
+func (s *Shell) PathTo(p string) string {
+	/* Absolute paths are easy. */
+	if filepath.IsAbs(p) {
+		return p
+	}
+
+	/* Path should be relative to our own, then. */
+	s.cwdL.Lock()
+	defer s.cwdL.Unlock()
+	return filepath.Clean(filepath.Join(s.cwd, p))
+}
