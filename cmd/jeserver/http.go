@@ -5,7 +5,7 @@ package main
  * Handle HTTP requests
  * By J. Stuart McMurray
  * Created 20220512
- * Last Modified 20220522
+ * Last Modified 20220715
  */
 
 import (
@@ -105,6 +105,11 @@ func serveImplant(w http.ResponseWriter, r *http.Request) {
 	if 3 <= len(parts) {
 		enc = parts[2]
 	}
+	/* If we have a fourth part, it's the program name. */
+	var progname string
+	if 4 <= len(parts) {
+		progname = parts[3]
+	}
 
 	/* Work out the encoding. */
 	var encoder io.Writer
@@ -116,9 +121,13 @@ func serveImplant(w http.ResponseWriter, r *http.Request) {
 	case encHex: /* perl -e '$/=\2;while(<>){print chr hex}' */
 		encoder = hex.NewEncoder(w)
 	case encMFDPerl:
-		encoder = newByteEncoderWrapper(w, bin2memfd.Perl)
+		encoder = newByteEncoderWrapper(w, bin2memfd.Encoder{
+			Args: []string{progname},
+		}.Perl)
 	case encMFDPython:
-		encoder = newByteEncoderWrapper(w, bin2memfd.Python)
+		encoder = newByteEncoderWrapper(w, bin2memfd.Encoder{
+			Args: []string{progname},
+		}.Python)
 	default:
 		log.Printf("%s: unknown encoding %q", mp, enc)
 		badRequest = true
