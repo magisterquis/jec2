@@ -5,7 +5,7 @@ package main
  * Proxy an operator to an implant
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220629
+ * Last Modified 20220715
  */
 
 import (
@@ -101,13 +101,13 @@ func HandleOperatorForward(tag Tag, sc *ssh.ServerConn, nc ssh.NewChannel) {
 			log.Printf(
 				"[%s] Implant %q seems no longer connected",
 				tag,
-				imp.Name,
+				imp.Name(),
 			)
 			if err := imp.Close(); nil != err {
 				log.Printf(
 					"[%s] Error killing implant %q: %s",
 					tag,
-					imp.Name,
+					imp.Name(),
 					err,
 				)
 			}
