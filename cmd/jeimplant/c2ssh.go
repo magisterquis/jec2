@@ -5,7 +5,7 @@ package main
  * Comms between the implant and server.
  * By J. Stuart McMurray
  * Created 20220327
- * Last Modified 20220411
+ * Last Modified 20220715
  */
 
 import (
@@ -20,6 +20,20 @@ import (
 
 	"golang.org/x/crypto/ssh"
 )
+
+// DialError is a decorator returned by ConnectToC2 when the connection can't
+// be made.
+type DialError struct {
+	Err error
+}
+
+// Error implements the error interface.
+func (e DialError) Error() string { return e.Err.Error() }
+
+// Unwrap helps things in the errors package.
+func (e DialError) Unwrap() error {
+	return e.Err
+}
 
 // ConnectToC2 makes an SSH connection to the C2 server.
 func ConnectToC2() (
@@ -82,10 +96,7 @@ func ConnectToC2() (
 		)
 	}
 	if nil != err {
-		return nil, nil, nil, fmt.Errorf(
-			"connecting to server: %w",
-			err,
-		)
+		return nil, nil, nil, DialError{Err: err}
 	}
 
 	/* SSHify */
